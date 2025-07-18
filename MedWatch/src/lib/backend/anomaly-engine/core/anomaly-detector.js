@@ -8,7 +8,7 @@ const DatabaseService = require('./database');
 class AnomalyDetector extends EventEmitter {
   constructor(config = {}, logger) {
     super();
-    
+
     this.config = {
       enableRuleEngine: true,
       enableMLModels: true,
@@ -20,14 +20,14 @@ class AnomalyDetector extends EventEmitter {
     this.logger = logger;
     // Pass the dbConfig part of the config to the DatabaseService
     this.database = new DatabaseService(this.logger, config.dbConfig);
-    
+
     this.ruleEngine = new RuleEngine(this.logger);
     this.mlModelManager = new MLModelManager(this.logger);
     this.dataProcessor = new DataProcessor(this.logger);
     this.alertManager = new AlertManager(this.logger);
-    
+
     this.isRunning = false;
-    
+
     this.initializeEngine();
   }
 
@@ -77,7 +77,7 @@ class AnomalyDetector extends EventEmitter {
     }
 
     this.logger.info(`Processing batch of ${dataPoints.length} data points from database.`);
-    
+
     try {
       const processedData = await this.dataProcessor.preprocess(dataPoints);
 
@@ -98,6 +98,8 @@ class AnomalyDetector extends EventEmitter {
     for (const dataPoint of data) {
       const anomalies = await this.ruleEngine.evaluate(dataPoint);
       for (const anomaly of anomalies) {
+        // Ensure that 'anomaly' here contains 'severity', 'message', 'details', 'type', 'confidence'
+        // from the rule engine result.
         this.handleAnomalyDetected('rule-based', { ...anomaly, dataPoint, confidence: anomaly.severity === 'critical' ? 1.0 : 0.8 });
       }
     }
@@ -107,25 +109,49 @@ class AnomalyDetector extends EventEmitter {
     const predictions = await this.mlModelManager.predict(data);
     for (let i = 0; i < predictions.length; i++) {
       if (predictions[i].isAnomaly) {
+        // Ensure that 'predictions[i]' contains 'severity', 'message', 'details', 'type', 'confidence'
+        // from the ML model prediction result.
         this.handleAnomalyDetected('ml-based', { ...predictions[i], dataPoint: data[i] });
       }
     }
   }
 
   handleAnomalyDetected(detectionType, anomaly) {
-    const anomalyId = `anom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Destructure specifically the attributes that are part of the Appwrite schema
+    // This explicitly excludes 'ruleId' and any other unknown attributes that might be
+    // present in the raw 'anomaly' object from rule engine or ML model.
+    const {
+      severity,
+      message,
+      confidence,
+      type, // 'type' might come from the rule/ML anomaly object
+      details,
+      // Add other expected properties from the 'anomaly' object here if needed
+    } = anomaly;
+
     const enrichedAnomaly = {
-      id: anomalyId,
       detectionType,
-      ...anomaly,
+      // Use the destructured properties, providing defaults if necessary
+      severity: severity || 'medium',
+      message: message || `Anomaly detected for medicine ID: ${anomaly.dataPoint ? anomaly.dataPoint.medicineID : 'N/A'}`,
+      confidence: confidence, // Confidence should always be present from rule/ML
+      type: type || detectionType, // Use type from anomaly or default to detectionType
+      // NEW: Ensure 'details' is a string. If it's an object, stringify it.
+      details: typeof details === 'object' && details !== null ? JSON.stringify(details) : (details || ''), // Default to empty string if not present and not an object
+      
+      // These attributes are consistently generated or defaulted within handleAnomalyDetected
+      medicineDataId: anomaly.dataPoint ? anomaly.dataPoint.medicineID : null,
+      assignedTo: anomaly.assignedTo || '',
       status: 'active',
       timestamp: new Date().toISOString(),
+      reviewedAt: null,
     };
-    
+
+    // The documentId for Appwrite.createDocument is now handled within DatabaseService.saveAnomaly
     this.database.saveAnomaly(enrichedAnomaly);
     this.emit('anomaly-detected', enrichedAnomaly);
 
-    if (anomaly.confidence >= this.config.alertThreshold) {
+    if (enrichedAnomaly.confidence >= this.config.alertThreshold) { // Use enrichedAnomaly.confidence
       this.alertManager.sendAlert(enrichedAnomaly);
     }
   }

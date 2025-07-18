@@ -29,7 +29,7 @@ async function main() {
   try {
     // Configuration
     const config = {
-      port: process.env.PORT || 3001,
+      port: process.env.PORT || 3002,
       detector: {
         enableRuleEngine: process.env.ENABLE_RULES !== 'false',
         enableMLModels: process.env.ENABLE_ML !== 'false',

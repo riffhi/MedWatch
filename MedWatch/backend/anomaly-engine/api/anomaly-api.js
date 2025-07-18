@@ -1,9 +1,10 @@
 // Ensure environment variables are loaded
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-const express = require('express');
-const cors = require('cors');
-const AnomalyDetector = require('../core/anomaly-detector');
+import express from 'express';
+import cors from 'cors';
+import AnomalyDetector from '../core/anomaly-detector.js';
 
 class AnomalyAPI {
   constructor(config = {}, logger) {
@@ -17,9 +18,9 @@ class AnomalyAPI {
     const detectorConfig = {
         ...config.detector,
         dbConfig: {
-            databaseId: process.env.VITE_APPWRITE_DATABASE_ID,
-            medicineCollectionId: process.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID,
-            anomalyCollectionId: process.env.VITE_APPWRITE_ANOMALY_COLLECTION_ID,
+            databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
+            medicineCollectionId: import.meta.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID,
+            anomalyCollectionId: import.meta.env.VITE_APPWRITE_ANOMALY_COLLECTION_ID,
         }
     };
     
@@ -47,7 +48,7 @@ class AnomalyAPI {
       res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
+        uptime: (typeof performance !== 'undefined' ? performance.now() / 1000 : 0),
       });
     });
 
@@ -81,7 +82,7 @@ class AnomalyAPI {
     this.app.use((req, res) => {
       res.status(404).json({ error: 'Endpoint not found' });
     });
-    this.app.use((error, req, res, _next) => {
+    this.app.use((error, req, res) => {
       this.logger.error('Unhandled API error:', error);
       res.status(500).json({ error: 'Internal server error' });
     });
@@ -100,4 +101,4 @@ class AnomalyAPI {
   }
 }
 
-module.exports = AnomalyAPI;
+export default AnomalyAPI;

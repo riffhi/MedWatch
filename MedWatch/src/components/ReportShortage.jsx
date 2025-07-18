@@ -16,9 +16,17 @@ const ReportShortage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // In a real app, you would send this data to a server/API
     console.log('Report submitted:', formData);
     setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    // Reset form after a few seconds
+    setTimeout(() => {
+      setSubmitted(false);
+      setFormData({
+        medicine: '', pharmacy: '', location: '', issue: '', 
+        price: '', description: '', contact: ''
+      });
+    }, 4000);
   };
 
   const handleChange = (e) => {
@@ -30,13 +38,15 @@ const ReportShortage = () => {
 
   if (submitted) {
     return (
-      <div className="space-y-6">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-green-900 mb-2">Report Submitted Successfully!</h3>
-          <p className="text-green-700">Thank you for reporting this shortage. Our team will investigate and take appropriate action.</p>
+      <div className="flex items-center justify-center h-full animate-fade-in">
+        <div className="bg-slate-900/70 backdrop-blur-xl border border-green-500/30 rounded-2xl p-8 text-center max-w-lg w-full">
+          <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-white mb-2">Report Submitted Successfully!</h3>
+          <p className="text-gray-300">
+            Thank you for your contribution. Our team will verify the report and take appropriate action.
+          </p>
           <div className="mt-4">
-            <p className="text-sm text-green-600">Report ID: #MED-{Date.now().toString().slice(-6)}</p>
+            <p className="text-sm text-gray-500">Report ID: #MED-{Date.now().toString().slice(-6)}</p>
           </div>
         </div>
       </div>
@@ -44,25 +54,23 @@ const ReportShortage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Report Medicine Shortage</h2>
-          <p className="text-gray-600">Help us track medicine availability and pricing issues</p>
+          <h2 className="text-2xl font-bold text-white">Report a Medicine Issue</h2>
+          <p className="text-gray-400">Help us track availability and pricing problems.</p>
         </div>
-        <div className="flex items-center space-x-2 bg-orange-50 px-3 py-2 rounded-lg">
-          <AlertTriangle className="w-4 h-4 text-orange-600" />
-          <span className="text-sm text-orange-700 font-medium">Report Anonymously</span>
+        <div className="flex items-center space-x-2 bg-purple-500/10 px-3 py-2 rounded-lg border border-purple-500/20">
+          <AlertTriangle className="w-4 h-4 text-purple-400" />
+          <span className="text-sm text-purple-300 font-medium">Report Anonymously</span>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div className="bg-black/20 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Medicine Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Medicine Name *</label>
               <input
                 type="text"
                 name="medicine"
@@ -70,13 +78,11 @@ const ReportShortage = () => {
                 onChange={handleChange}
                 required
                 placeholder="e.g., Insulin, Levothyroxine"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pharmacy Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Pharmacy Name *</label>
               <input
                 type="text"
                 name="pharmacy"
@@ -84,15 +90,13 @@ const ReportShortage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Name of the pharmacy"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Location *
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Location *</label>
             <div className="relative">
               <input
                 type="text"
@@ -101,7 +105,7 @@ const ReportShortage = () => {
                 onChange={handleChange}
                 required
                 placeholder="District, City, State"
-                className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 pl-10 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
               />
               <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             </div>
@@ -109,15 +113,13 @@ const ReportShortage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Issue Type *
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Issue Type *</label>
               <select
                 name="issue"
                 value={formData.issue}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">Select issue type</option>
                 <option value="out-of-stock">Out of Stock</option>
@@ -128,65 +130,56 @@ const ReportShortage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (if applicable)
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Price (if applicable)</label>
               <input
                 type="number"
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
                 placeholder="₹ 0.00"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows={4}
               placeholder="Please provide more details about the issue..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Information (Optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Contact Information (Optional)</label>
             <input
               type="text"
               name="contact"
               value={formData.contact}
               onChange={handleChange}
-              placeholder="Phone number or email (for follow-up)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Phone or email (for follow-up)"
+              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              This information will be kept confidential and used only for verification purposes.
-            </p>
+            <p className="text-xs text-gray-500 mt-1">This information will be kept confidential.</p>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-4 border-t border-white/10">
             <div className="flex items-center space-x-2">
               <button
                 type="button"
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white hover:bg-white/20 transition-colors"
               >
                 <Camera className="w-4 h-4" />
                 <span>Add Photo</span>
               </button>
-              <span className="text-xs text-gray-500">Optional: Add photo evidence</span>
             </div>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-pink-500 transition-all transform hover:scale-105"
             >
               Submit Report
             </button>
@@ -194,13 +187,12 @@ const ReportShortage = () => {
         </form>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-blue-900 mb-2">Important Information</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• All reports are verified before being added to the system</li>
-          <li>• Your identity remains anonymous unless you choose to provide contact details</li>
-          <li>• False reports may result in account suspension</li>
-          <li>• Emergency shortages are prioritized and addressed immediately</li>
+      <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-purple-300 mb-2">Important Information</h3>
+        <ul className="text-sm text-purple-400 space-y-1 list-disc list-inside">
+          <li>All reports are verified before being added to the system.</li>
+          <li>Your identity remains anonymous unless you provide contact details.</li>
+          <li>False reports may result in account suspension.</li>
         </ul>
       </div>
     </div>

@@ -23,7 +23,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
-    "require": "^2.4.20",
+    "recharts": "^3.1.0",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {

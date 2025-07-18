@@ -172,3 +172,4 @@ const CriticalAlerts = () => (
 );
 
 export default Dashboard;
+

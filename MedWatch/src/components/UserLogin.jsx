@@ -230,6 +230,16 @@ const UserLogin = ({ onLogin, userType, setUserType }) => {
             <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
               {isRegistering ? 'Sign Up' : 'Sign In'}
             </button>
+            {/* Google OAuth Button */}
+            {!isRegistering && (
+              <button
+                type="button"
+                onClick={() => account.createOAuth2Session('google', 'http://localhost:5173', 'http://localhost:5173')}
+                className="w-full flex justify-center py-3 px-4 mt-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                Sign in with Google
+              </button>
+            )}
           </form>
 
           <div className="mt-6 text-center">

@@ -11,18 +11,21 @@ const Layout = ({ children, currentView, onViewChange, userRole }) => {
       { id: 'inventory', label: 'Inventory Management', icon: Menu },
       { id: 'reports', label: 'Reports', icon: Bell },
       { id: 'profile', label: 'Profile', icon: Users },
+      { id: 'crud', label: 'CRUD Test', icon: Settings },
     ],
     patient: [
       { id: 'dashboard', label: 'Dashboard', icon: Activity },
       { id: 'report', label: 'Report Shortage', icon: Bell },
       { id: 'map', label: 'Shortage Map', icon: MapPin },
       { id: 'profile', label: 'Profile', icon: Users },
+      { id: 'crud', label: 'CRUD Test', icon: Settings },
     ],
     authority: [
       { id: 'dashboard', label: 'Dashboard', icon: Activity },
       { id: 'alerts', label: 'Alerts & Notifications', icon: Bell },
       { id: 'map', label: 'Geographic Analysis', icon: MapPin },
       { id: 'analytics', label: 'Analytics', icon: Settings },
+      { id: 'crud', label: 'CRUD Test', icon: Settings },
     ],
   };
 

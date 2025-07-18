@@ -14,12 +14,15 @@
     "@tailwindcss/vite": "^4.1.11",
     "@types/google.maps": "^3.58.1",
     "appwrite": "^18.1.1",
+    "csv-parse": "^6.1.0",
     "date-fns": "^4.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.525.0",
+    "node-appwrite": "^17.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
+    "require": "^2.4.20",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {

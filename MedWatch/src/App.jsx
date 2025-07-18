@@ -6,13 +6,11 @@ import ReportShortage from './components/ReportShortage';
 import InventoryManagement from './components/InventoryManagement';
 import Alerts from './components/Alerts';
 import UserLogin from './components/UserLogin';
-import MedicineShortageMap from './components/MedicineShortageMap';
-
-
+import CRUD_test from './components/CRUD_test';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
-  const [userRole, setUserRole] = useState(null); // Removed TypeScript type
+  const [userRole, setUserRole] = useState(null);
 
   if (!userRole) {
     return <UserLogin onLogin={setUserRole} />;
@@ -23,33 +21,23 @@ function App() {
       case 'dashboard':
         return <Dashboard userRole={userRole} />;
       case 'map':
-        return <MedicineShortageMap />;
+        return <ShortageMap />;
       case 'report':
         return <ReportShortage />;
       case 'inventory':
         return <InventoryManagement />;
       case 'alerts':
         return <Alerts />;
-      case 'analytics':
-        return <Dashboard userRole={userRole} />;
-      case 'medicines':
-        return <InventoryManagement />;
-      case 'users':
-        return <Dashboard userRole={userRole} />;
-      case 'settings':
-        return <Dashboard userRole={userRole} />;
-      case 'profile':
-        return <Dashboard userRole={userRole} />;
-      case 'reports':
-        return <Dashboard userRole={userRole} />;
+      case 'crud':
+        return <CRUD_test />;
       default:
         return <Dashboard userRole={userRole} />;
     }
   };
 
   return (
-    <Layout 
-      currentView={currentView} 
+    <Layout
+      currentView={currentView}
       onViewChange={setCurrentView}
       userRole={userRole}
     >

@@ -50,6 +50,7 @@ const Dashboard = ({ userRole }) => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
           <p className="text-gray-600">Real-time medicine shortage monitoring</p>
+          <p>User Role: {userRole}</p>
         </div>
         <div className="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>

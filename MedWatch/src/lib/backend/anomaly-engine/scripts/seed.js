@@ -1,74 +1,123 @@
-/**
- * Appwrite Database Seeding Script
- * Reads the CSV data and populates the Appwrite collection.
- */
-require('dotenv').config({ path: '../.env' });
-const fs = require('fs');
-const { Client, Databases, ID } = require('node-appwrite');
-const { parse } = require('csv-parse/sync');
+    /**
+     * Appwrite Database Processing Script
+     * Reads existing data from an Appwrite collection and re-processes/updates it.
+     */
+    const path = require('path'); // Import the path module
 
-async function seedDatabase() {
-  console.log('Starting database seed...');
+    // Determine the absolute path to the .env file
+    // Adjusted path based on your clarification: .env is one level up in 'anomaly-engine' folder
+    const envPath = path.resolve(__dirname, '../.env');
 
-  const client = new Client()
-    .setEndpoint(process.env.APPWRITE_ENDPOINT)
-    .setProject(process.env.APPWRITE_PROJECT_ID)
-    .setKey(process.env.APPWRITE_API_KEY);
+    console.log(`Attempting to load .env from: ${envPath}`);
+    require('dotenv').config({ path: envPath });
 
-  const databases = new Databases(client);
-  const databaseId = process.env.APPWRITE_DATABASE_ID;
-  const collectionId = 'medicines';
+    const { Client, Databases, Query } = require('node-appwrite');
 
-  // Read and parse the CSV file
-  const csvData = fs.readFileSync('../data/medicine-dataset.csv', 'utf8');
-  const records = parse(csvData, {
-    columns: true,
-    skip_empty_lines: true,
-    cast: true,
-  });
+    async function seedDatabase() {
+      console.log('Starting Appwrite data processing...');
 
-  console.log(`Found ${records.length} records to seed...`);
+      // --- DEBUGGING: Log environment variables ---
+      console.log('Environment Variables Check:');
+      console.log('APPWRITE_ENDPOINT:', process.env.APPWRITE_ENDPOINT);
+      console.log('APPWRITE_PROJECT_ID:', process.env.APPWRITE_PROJECT_ID);
+      console.log('APPWRITE_API_KEY:', process.env.APPWRITE_API_KEY);
+      console.log('APPWRITE_DATABASE_ID:', process.env.APPWRITE_DATABASE_ID);
+      console.log('APPWRITE_MEDICINE_COLLECTION_ID:', process.env.APPWRITE_MEDICINE_COLLECTION_ID);
+      console.log('---------------------------------');
+      // --- END DEBUGGING ---
 
-  for (const record of records) {
-    try {
-      // Appwrite expects a specific format, so we map our CSV fields
-      const documentData = {
-        medicineID: record.medicineID,
-        medicineName: record.medicineName,
-        genericName: record.genericName,
-        company: record.company,
-        disease: record.disease,
-        currentStock: record.currentStock,
-        currentPrice: record.currentPrice,
-        location: record.location,
-        supplier: record.supplier,
-        criticalThreshold: record.criticalThreshold,
-        averageMarketPrice: record.averageMarketPrice,
-        dailyConsumption: record.dailyConsumption,
-        stockHistory: JSON.parse(record.stockHistory), // Appwrite can store arrays
-        priceHistory: JSON.parse(record.priceHistory),
-        supplierDelay: record.supplierDelay,
-        lastUpdatedAt: record.lastUpdatedAt,
-      };
+      if (!process.env.APPWRITE_ENDPOINT || !process.env.APPWRITE_PROJECT_ID || !process.env.APPWRITE_API_KEY || !process.env.APPWRITE_DATABASE_ID || !process.env.APPWRITE_MEDICINE_COLLECTION_ID) {
+        console.error('Error: One or more required Appwrite environment variables are missing or undefined.');
+        console.error('Please ensure APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_API_KEY, APPWRITE_DATABASE_ID, and APPWRITE_MEDICINE_COLLECTION_ID are set in your .env file.');
+        process.exit(1);
+      }
 
-      await databases.createDocument(
-        databaseId,
-        collectionId,
-        record.medicineID, // Use medicineID as the document ID
-        documentData
-      );
-      console.log(`Successfully seeded ${record.medicineName} in ${record.location}`);
-    } catch (error) {
-      // If document already exists, Appwrite will throw an error. We can ignore it or update.
-      if (error.code === 409) {
-         console.log(`Document for ${record.medicineName} in ${record.location} already exists. Skipping.`);
-      } else {
-         console.error(`Failed to seed ${record.medicineName}:`, error);
+      const client = new Client()
+        .setEndpoint(process.env.APPWRITE_ENDPOINT)
+        .setProject(process.env.APPWRITE_PROJECT_ID)
+        .setKey(process.env.APPWRITE_API_KEY);
+
+      const databases = new Databases(client);
+      const databaseId = process.env.APPWRITE_DATABASE_ID;
+      const collectionId = process.env.APPWRITE_MEDICINE_COLLECTION_ID;
+
+      let records = [];
+      let hasMore = true;
+      let cursor = null;
+
+      console.log(`Fetching existing records from Appwrite collection '${collectionId}'...`);
+
+      try {
+        while (hasMore) {
+          const queries = [Query.limit(100)];
+          if (cursor) {
+            queries.push(Query.cursorAfter(cursor));
+          }
+
+          const response = await databases.listDocuments(
+            databaseId,
+            collectionId,
+            queries
+          );
+
+          records = records.concat(response.documents);
+          hasMore = response.documents.length === 100;
+          if (hasMore) {
+            cursor = response.documents[response.documents.length - 1].$id;
+          }
+        }
+
+        console.log(`Found ${records.length} existing records in Appwrite to process...`);
+
+        if (records.length === 0) {
+          console.log('No records found in the Appwrite collection to process. Exiting.');
+          return;
+        }
+
+        for (const record of records) {
+          try {
+            const documentData = {
+              medicineID: record.medicineID,
+              medicineName: record.medicineName,
+              genericName: record.genericName,
+              company: record.company,
+              disease: record.disease,
+              currentStock: record.currentStock,
+              currentPrice: record.currentPrice,
+              location: record.location,
+              supplier: record.supplier,
+              criticalThreshold: record.criticalThreshold,
+              averageMarketPrice: record.averageMarketPrice,
+              dailyConsumption: record.dailyConsumption,
+              stockHistory: record.stockHistory,
+              priceHistory: record.priceHistory,
+              supplierDelay: record.supplierDelay,
+              lastUpdatedAt: record.lastUpdatedAt,
+            };
+
+            await databases.updateDocument(
+              databaseId,
+              collectionId,
+              record.$id,
+              documentData
+            );
+            console.log(`Successfully processed and updated document for ${record.medicineName} (ID: ${record.$id})`);
+          } catch (error) {
+            if (error.code === 404) {
+              console.error(`Document with ID ${record.$id} not found for ${record.medicineName}. Skipping update.`);
+            } else {
+              console.error(`Failed to process/update document for ${record.medicineName} (ID: ${record.$id}):`, error);
+            }
+          }
+        }
+
+        console.log('Appwrite data processing complete!');
+
+      } catch (fetchError) {
+        console.error('Error fetching documents from Appwrite:', fetchError);
+        process.exit(1);
       }
     }
-  }
-  
-  console.log('Database seeding complete!');
-}
 
-seedDatabase();
+    seedDatabase();
+    

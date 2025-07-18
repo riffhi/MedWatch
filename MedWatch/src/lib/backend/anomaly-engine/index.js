@@ -1,6 +1,7 @@
 /**
  * Main entry point for the Anomaly Detection Engine
  */
+require('dotenv').config();
 
 const AnomalyAPI = require('./api/anomaly-api');
 const winston = require('winston');

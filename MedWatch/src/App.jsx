@@ -606,7 +606,7 @@ export default function App() {
         setLoggedInUser(user);
         setUserRole(role);
         localStorage.setItem('userRole', role);
-      } catch (error) {
+      } catch {
         console.log('No active session.');
         setLoggedInUser(null);
         setUserRole(null);

@@ -103,8 +103,10 @@ async function seedDatabase() { // Keeping the name 'seedDatabase' but functiona
           priceHistory: record.priceHistory,
           supplierDelay: record.supplierDelay,
           lastUpdatedAt: record.lastUpdatedAt,
-          // NEW: Include the 'description' attribute from the fetched record
-          description: record.description || 'No description provided.', // Provide a default if it's missing from the fetched record
+          description: record.description || 'No description provided.', // Ensure description is present
+          causesOfShortage: record.causesOfShortage || '', // Ensure causesOfShortage is present
+          // NEW: Include the 'projectedStockoutDate' attribute from the fetched record
+          projectedStockoutDate: record.projectedStockoutDate || null, // Provide a default null if not present
         };
 
         // Update the existing document using its $id.

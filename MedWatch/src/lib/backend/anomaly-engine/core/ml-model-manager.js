@@ -172,9 +172,17 @@ class MLModelManager extends EventEmitter {
     return predictions[0];
   }
 
+  // Helper to determine severity based on confidence
+  getSeverityFromConfidence(confidence) {
+    if (confidence >= 0.9) return 'critical';
+    if (confidence >= 0.7) return 'high';
+    if (confidence >= 0.5) return 'medium';
+    return 'low';
+  }
+
   detectTimeSeriesAnomaly(dataPoint) {
     // Simulated time series anomaly detection
-    const { stockHistory, currentStock } = dataPoint;
+    const { stockHistory, currentStock, medicineName, medicineID } = dataPoint;
     
     if (!stockHistory || stockHistory.length < 7) {
       return { isAnomaly: false, confidence: 0, reason: 'Insufficient data' };
@@ -188,20 +196,31 @@ class MLModelManager extends EventEmitter {
     
     // Check if current stock is anomalous
     const zScore = stdDev > 0 ? Math.abs((currentStock - mean) / stdDev) : 0;
-    const threshold = 2.5;
+    const threshold = 2.5; // Standard deviations
     
     if (zScore > threshold) {
+      const confidence = Math.min(zScore / threshold, 1.0);
+      const severity = this.getSeverityFromConfidence(confidence);
+      const message = `ML Anomaly: ${medicineName} stock is ${zScore.toFixed(2)} SD from normal.`;
+      const description = `ML model detected an unusual deviation in the time series stock data for ${medicineName} (ID: ${medicineID}). The current stock of ${currentStock} is ${zScore.toFixed(2)} standard deviations away from the historical mean (${mean.toFixed(2)}). This suggests an abnormal stock movement.`;
+      const causesOfShortages = ['unexpected demand surge', 'supply chain bottleneck', 'inventory miscount', 'logistics delay']; // Added more specific causes
+
       return {
         isAnomaly: true,
-        confidence: Math.min(zScore / threshold, 1.0),
-        anomalyType: 'time-series',
-        features: {
-          zScore,
-          mean,
-          stdDev,
-          currentValue: currentStock
+        confidence: confidence,
+        severity: severity,
+        message: message,
+        type: 'Time Series Anomaly', // Changed type to be more descriptive
+        details: {
+          zScore: zScore,
+          mean: mean,
+          stdDev: stdDev,
+          currentValue: currentStock,
+          medicineName: medicineName,
+          medicineID: medicineID
         },
-        reason: `Stock level ${zScore.toFixed(2)} standard deviations from normal`
+        causesOfShortages: causesOfShortages,
+        description: description
       };
     }
     
@@ -211,18 +230,33 @@ class MLModelManager extends EventEmitter {
   detectIsolationAnomaly(dataPoint) {
     // Simulated isolation forest anomaly detection
     const features = this.extractFeatures(dataPoint);
+    const { medicineName, medicineID } = dataPoint;
     
     // Simulate isolation score calculation
     const isolationScore = this.calculateIsolationScore(features);
-    const threshold = 0.6;
+    const threshold = 0.6; // Higher score means more anomalous
     
     if (isolationScore > threshold) {
+      const confidence = isolationScore;
+      const severity = this.getSeverityFromConfidence(confidence);
+      const message = `ML Anomaly: ${medicineName} shows unusual behavior (Isolation Score: ${isolationScore.toFixed(3)}).`;
+      const description = `ML model identified ${medicineName} (ID: ${medicineID}) as an outlier based on its overall feature set. The isolation score of ${isolationScore.toFixed(3)} suggests it deviates significantly from typical patterns, indicating a potential anomaly.`;
+      const causesOfShortages = ['data quality issue', 'system error', 'unforeseen event', 'unusual transaction volume']; // Added more specific causes
+
       return {
         isAnomaly: true,
-        confidence: isolationScore,
-        anomalyType: 'isolation',
-        features,
-        reason: `Isolation score ${isolationScore.toFixed(3)} exceeds threshold`
+        confidence: confidence,
+        severity: severity,
+        message: message,
+        type: 'Isolation Forest Anomaly', // Changed type to be more descriptive
+        details: {
+          isolationScore: isolationScore,
+          features: features,
+          medicineName: medicineName,
+          medicineID: medicineID
+        },
+        causesOfShortages: causesOfShortages,
+        description: description
       };
     }
     
@@ -231,7 +265,7 @@ class MLModelManager extends EventEmitter {
 
   detectPriceAnomaly(dataPoint) {
     // Simulated price anomaly detection
-    const { currentPrice, priceHistory, averageMarketPrice } = dataPoint;
+    const { currentPrice, priceHistory, averageMarketPrice, medicineName, medicineID } = dataPoint;
     
     if (!priceHistory || priceHistory.length < 3) {
       return { isAnomaly: false, confidence: 0, reason: 'Insufficient price data' };
@@ -252,17 +286,29 @@ class MLModelManager extends EventEmitter {
     const threshold = 0.3;
     
     if (anomalyScore > threshold) {
+      const confidence = Math.min(anomalyScore, 1.0);
+      const severity = this.getSeverityFromConfidence(confidence);
+      const message = `ML Anomaly: ${medicineName} price anomaly detected (Score: ${anomalyScore.toFixed(3)}).`;
+      const description = `ML model detected an unusual price pattern for ${medicineName} (ID: ${medicineID}). The anomaly score of ${anomalyScore.toFixed(3)} is driven by high volatility (${(avgVolatility * 100).toFixed(1)}%) or significant deviation from average market price (${(marketDeviation * 100).toFixed(1)}%).`;
+      const causesOfShortages = ['price volatility', 'market deviation', 'raw material cost increase', 'import restrictions', 'competitor pricing strategy', 'economic instability']; // Added more specific causes
+
       return {
         isAnomaly: true,
-        confidence: Math.min(anomalyScore, 1.0),
-        anomalyType: 'price',
-        features: {
-          currentPrice,
-          avgVolatility,
-          marketDeviation,
-          anomalyScore
+        confidence: confidence,
+        severity: severity,
+        message: message,
+        type: 'Price Anomaly', // Changed type to be more descriptive
+        details: {
+          currentPrice: currentPrice,
+          avgVolatility: avgVolatility,
+          marketDeviation: marketDeviation,
+          anomalyScore: anomalyScore,
+          averageMarketPrice: averageMarketPrice,
+          medicineName: medicineName,
+          medicineID: medicineID
         },
-        reason: `Price anomaly score ${anomalyScore.toFixed(3)} exceeds threshold`
+        causesOfShortages: causesOfShortages,
+        description: description
       };
     }
     
@@ -271,7 +317,7 @@ class MLModelManager extends EventEmitter {
 
   detectDemandAnomaly(dataPoint) {
     // Simulated demand anomaly detection
-    const { currentDemand, demandHistory, seasonalFactors } = dataPoint;
+    const { currentDemand, demandHistory, seasonalFactors, medicineName, medicineID } = dataPoint;
     
     if (!demandHistory || demandHistory.length < 7) {
       return { isAnomaly: false, confidence: 0, reason: 'Insufficient demand data' };
@@ -290,17 +336,28 @@ class MLModelManager extends EventEmitter {
     const threshold = 0.4;
     
     if (demandDeviation > threshold) {
+      const confidence = Math.min(demandDeviation, 1.0);
+      const severity = this.getSeverityFromConfidence(confidence);
+      const message = `ML Anomaly: ${medicineName} demand deviation ${(demandDeviation * 100).toFixed(1)}% from expected.`;
+      const description = `ML model detected an unusual deviation in demand for ${medicineName} (ID: ${medicineID}). Current demand (${currentDemand}) is ${(demandDeviation * 100).toFixed(1)}% different from the expected demand (${expectedDemand.toFixed(2)}), considering seasonal factors. This indicates an unexpected surge or drop in demand.`;
+      const causesOfShortages = ['unexpected demand fluctuation', 'seasonal peak', 'disease outbreak', 'manpower shortage (distribution)', 'public health campaign', 'competitor stockout']; // Added more specific causes including manpower
+
       return {
         isAnomaly: true,
-        confidence: Math.min(demandDeviation, 1.0),
-        anomalyType: 'demand',
-        features: {
-          currentDemand,
-          expectedDemand,
-          demandDeviation,
-          seasonalAdjustment
+        confidence: confidence,
+        severity: severity,
+        message: message,
+        type: 'Demand Anomaly', // Changed type to be more descriptive
+        details: {
+          currentDemand: currentDemand,
+          expectedDemand: expectedDemand,
+          demandDeviation: demandDeviation,
+          seasonalAdjustment: seasonalAdjustment,
+          medicineName: medicineName,
+          medicineID: medicineID
         },
-        reason: `Demand deviation ${(demandDeviation * 100).toFixed(1)}% from expected`
+        causesOfShortages: causesOfShortages,
+        description: description
       };
     }
     
@@ -372,17 +429,27 @@ class MLModelManager extends EventEmitter {
       const weight = weights[prediction.modelName] || 0.1;
       weightedConfidence += prediction.confidence * weight;
       totalWeight += weight;
-      anomalyTypes.push(prediction.anomalyType);
+      anomalyTypes.push(prediction.type); // Use prediction.type which is now more descriptive
     }
     
     const finalConfidence = totalWeight > 0 ? weightedConfidence / totalWeight : 0;
     
+    // Determine overall severity for the combined prediction
+    const overallSeverity = this.getSeverityFromConfidence(finalConfidence);
+    const overallMessage = predictions.map(p => p.message).join(' | ');
+    const overallDescription = predictions.map(p => p.description).join('\n\n');
+    const overallCauses = [...new Set(predictions.flatMap(p => p.causesOfShortages))]; // Combine unique causes
+
     return {
       isAnomaly: finalConfidence > 0.5,
       confidence: finalConfidence,
-      anomalyType: anomalyTypes.join(', '),
+      severity: overallSeverity, // Added overall severity
+      message: overallMessage, // Combined message
+      description: overallDescription, // Combined description
+      causesOfShortages: overallCauses, // Combined causes
+      type: anomalyTypes.join(', '), // Combined types will now use the more descriptive names
       modelName: 'ensemble',
-      features: predictions.reduce((acc, pred) => ({ ...acc, ...pred.features }), {}),
+      details: predictions.reduce((acc, pred) => ({ ...acc, [pred.modelName]: pred.details }), {}), // Group details by model
       individualPredictions: predictions
     };
   }

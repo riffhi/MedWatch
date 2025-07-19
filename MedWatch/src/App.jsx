@@ -45,7 +45,9 @@ const LandingPage = ({ onGetStarted }) => {
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
                             <Activity className="w-6 h-6 text-white" />
                         </div>
-                        <h1 className="text-2xl font-bold text-white">MedTrack</h1>
+                        <h1 className="text-2xl font-bold text-white">MedWatch</h1>
+
+
                     </div>
                     <button
                         onClick={onGetStarted}
@@ -75,7 +77,7 @@ const LandingPage = ({ onGetStarted }) => {
             <section className="py-16 bg-black/20">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-12">
-                        <h3 className="text-3xl font-bold text-white">How MedTrack Works</h3>
+                        <h3 className="text-3xl font-bold text-white">How MedWatch Works</h3>
                         <p className="mt-2 text-gray-400">Connecting patients and pharmacies for better healthcare access</p>
                     </div>
                     <div className="grid md:grid-cols-2 gap-8">
@@ -169,7 +171,7 @@ const LandingPage = ({ onGetStarted }) => {
                         <div className="bg-slate-800/50 p-8 rounded-xl border border-white/10">
                             <p className="text-lg text-gray-300 mb-6">
                                 We are a passionate team of students who believe technology can solve India's most pressing healthcare challenges. 
-                                Witnessing the struggles of patients unable to find essential medicines inspired us to create MedTrack.
+                                Witnessing the struggles of patients unable to find essential medicines inspired us to create MedWatch.
                             </p>
                             <p className="text-gray-400 mb-6">
                                 Our mission is to democratize healthcare information, ensuring no patient goes without essential medication due to 
@@ -190,14 +192,14 @@ const LandingPage = ({ onGetStarted }) => {
                 <div className="container mx-auto px-4 text-center">
                     <h3 className="text-4xl font-bold text-white mb-4">Ready to Make a Difference?</h3>
                     <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                        Join thousands of patients and hundreds of pharmacies already using MedTrack to ensure medicine availability for everyone.
+                        Join thousands of patients and hundreds of pharmacies already using MedWatch to ensure medicine availability for everyone.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <button
                             onClick={onGetStarted}
                             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-8 rounded-full text-lg hover:from-purple-700 hover:to-pink-700 transition-transform transform hover:scale-105 shadow-lg"
                         >
-                            Start Using MedTrack
+                            Start Using MedWatch
                         </button>
                         <button
                             onClick={onGetStarted}
@@ -211,7 +213,7 @@ const LandingPage = ({ onGetStarted }) => {
             </section>
             
             <footer className="text-center p-6 text-gray-500 text-sm">
-                <p>&copy; {new Date().getFullYear()} MedTrack. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} MedWatch. All rights reserved.</p>
             </footer>
         </div>
     );
@@ -261,7 +263,7 @@ function MainLayout({ user, userRole, onLogout }) {
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <Activity className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">MedTrack</span>
+            <span className="text-xl font-bold">MedWatch</span>
           </div>
           <nav className="flex-1 p-4 space-y-2">
             {navigationItems.map(item => (
@@ -410,7 +412,7 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
                 <Activity className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h2 className="mt-6 text-3xl font-bold text-white">Welcome to MedTrack</h2>
+            <h2 className="mt-6 text-3xl font-bold text-white">Welcome to MedWatch</h2>
             <p className="mt-2 text-sm text-gray-400">Real-time medicine shortage monitoring</p>
           </div>
 

@@ -1,4 +1,5 @@
 
+
 // import React, { useState, useEffect } from 'react';
 // import { Client, Account, ID } from 'appwrite';
 // import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield } from 'lucide-react';
@@ -9,10 +10,13 @@
 // import Alerts from './components/Alerts';
 // import ReportShortage from './components/ReportShortage';
 // import InventoryManagement from './components/InventoryManagement';
+// import { databases } from './lib/appwrite.js'; // Ensure this path is correct
 
 // // --- Appwrite Configuration ---
 // const appwriteEndpoint = import.meta.env.VITE_APPWRITE_ENDPOINT;
 // const appwriteProjectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+// const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID; // Ensure this is set in your .env file
+// const userCollectionId = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID; // Ensure this is set in your .env file
 
 // const client = new Client();
 // if (appwriteEndpoint && appwriteProjectId) {
@@ -67,29 +71,142 @@
 //                 </button>
 //             </main>
 
+//             {/* Features Section */}
 //             <section className="py-16 bg-black/20">
 //                 <div className="container mx-auto px-4">
 //                     <div className="text-center mb-12">
-//                         <h3 className="text-3xl font-bold text-white">A Platform for All Stakeholders</h3>
-//                         <p className="mt-2 text-gray-400">Empowering every part of the healthcare chain.</p>
+//                         <h3 className="text-3xl font-bold text-white">How MedTrack Works</h3>
+//                         <p className="mt-2 text-gray-400">Connecting patients and pharmacies for better healthcare access</p>
 //                     </div>
-//                     <div className="grid md:grid-cols-3 gap-8">
+//                     <div className="grid md:grid-cols-2 gap-8">
 //                         <FeatureCard
-//                             icon={HeartPulse}
+//                             icon={Users}
 //                             title="For Patients & Public"
-//                             description="Find pharmacies with stock, report shortages instantly, and avoid price gouging by checking standard prices."
+//                             description="Report medicine shortages and overpricing instantly. Find nearby pharmacies with stock availability. Get real-time alerts about essential medicine availability in your district."
 //                         />
 //                         <FeatureCard
 //                             icon={Building}
 //                             title="For Pharmacies"
-//                             description="Manage your inventory, get alerts on low stock, and update availability to serve your community better."
-//                         />
-//                         <FeatureCard
-//                             icon={Shield}
-//                             title="For Health Authorities"
-//                             description="Monitor district-level data, detect black-market trends, and respond effectively to supply chain disruptions."
+//                             description="Auto-update your medicine inventory through our dashboard or API. Get low-stock alerts. Help serve your community better by sharing real-time availability data."
 //                         />
 //                     </div>
+//                 </div>
+//             </section>
+
+//             {/* Key Features Section */}
+//             <section className="py-16 bg-black/10">
+//                 <div className="container mx-auto px-4">
+//                     <div className="text-center mb-12">
+//                         <h3 className="text-3xl font-bold text-white">Powerful Features</h3>
+//                         <p className="mt-2 text-gray-400">Advanced technology for healthcare transparency</p>
+//                     </div>
+//                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+//                         <div className="text-center p-6 bg-slate-800/30 rounded-lg border border-white/10">
+//                             <Map className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+//                             <h4 className="text-white font-semibold mb-2">Geo-Mapping</h4>
+//                             <p className="text-gray-400 text-sm">Visual shortage patterns across districts</p>
+//                         </div>
+//                         <div className="text-center p-6 bg-slate-800/30 rounded-lg border border-white/10">
+//                             <TrendingUp className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+//                             <h4 className="text-white font-semibold mb-2">Anomaly Detection</h4>
+//                             <p className="text-gray-400 text-sm">ML-powered price and shortage alerts</p>
+//                         </div>
+//                         <div className="text-center p-6 bg-slate-800/30 rounded-lg border border-white/10">
+//                             <Bell className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+//                             <h4 className="text-white font-semibold mb-2">Real-Time Alerts</h4>
+//                             <p className="text-gray-400 text-sm">Instant notifications for stakeholders</p>
+//                         </div>
+//                         <div className="text-center p-6 bg-slate-800/30 rounded-lg border border-white/10">
+//                             <BarChart2 className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+//                             <h4 className="text-white font-semibold mb-2">Analytics Dashboard</h4>
+//                             <p className="text-gray-400 text-sm">Comprehensive insights and trends</p>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </section>
+
+//             {/* Impact Section */}
+//             <section className="py-16 bg-black/30">
+//                 <div className="container mx-auto px-4">
+//                     <div className="text-center mb-12">
+//                         <h3 className="text-3xl font-bold text-white">Expected Impact</h3>
+//                         <p className="mt-2 text-gray-400">Creating a healthier future for India</p>
+//                     </div>
+//                     <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8 text-center">
+//                         <div>
+//                             <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+//                                 <Shield className="w-8 h-8 text-white" />
+//                             </div>
+//                             <h4 className="text-xl font-bold text-white mb-2">Early Detection</h4>
+//                             <p className="text-gray-400">Identify drug shortages and black-market activity before they escalate</p>
+//                         </div>
+//                         <div>
+//                             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4">
+//                                 <HeartPulse className="w-8 h-8 text-white" />
+//                             </div>
+//                             <h4 className="text-xl font-bold text-white mb-2">Patient Protection</h4>
+//                             <p className="text-gray-400">Shield patients from unethical pricing and ensure medicine access</p>
+//                         </div>
+//                         <div>
+//                             <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+//                                 <TrendingUp className="w-8 h-8 text-white" />
+//                             </div>
+//                             <h4 className="text-xl font-bold text-white mb-2">Supply Chain</h4>
+//                             <p className="text-gray-400">Improve responsiveness and efficiency across India's healthcare system</p>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </section>
+
+//             {/* About Us Section */}
+//             <section className="py-16 bg-black/20">
+//                 <div className="container mx-auto px-4">
+//                     <div className="text-center mb-12">
+//                         <h3 className="text-3xl font-bold text-white">About Us</h3>
+//                         <p className="mt-2 text-gray-400">Students building for a better tomorrow</p>
+//                     </div>
+//                     <div className="max-w-3xl mx-auto text-center">
+//                         <div className="bg-slate-800/50 p-8 rounded-xl border border-white/10">
+//                             <p className="text-lg text-gray-300 mb-6">
+//                                 We are a passionate team of students who believe technology can solve India's most pressing healthcare challenges. 
+//                                 Witnessing the struggles of patients unable to find essential medicines inspired us to create MedTrack.
+//                             </p>
+//                             <p className="text-gray-400 mb-6">
+//                                 Our mission is to democratize healthcare information, ensuring no patient goes without essential medication due to 
+//                                 information gaps or market manipulation. We're building this platform as our contribution to a healthier, 
+//                                 more transparent healthcare ecosystem in India.
+//                             </p>
+//                             <div className="flex justify-center items-center space-x-2 text-purple-300">
+//                                 <span className="text-2xl">🎓</span>
+//                                 <span className="font-semibold">Students • Innovators • Healthcare Advocates</span>
+//                             </div>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </section>
+
+//             {/* CTA Section */}
+//             <section className="py-16 bg-gradient-to-r from-purple-600/20 to-pink-600/20">
+//                 <div className="container mx-auto px-4 text-center">
+//                     <h3 className="text-4xl font-bold text-white mb-4">Ready to Make a Difference?</h3>
+//                     <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+//                         Join thousands of patients and hundreds of pharmacies already using MedTrack to ensure medicine availability for everyone.
+//                     </p>
+//                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+//                         <button
+//                             onClick={onGetStarted}
+//                             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-8 rounded-full text-lg hover:from-purple-700 hover:to-pink-700 transition-transform transform hover:scale-105 shadow-lg"
+//                         >
+//                             Start Using MedTrack
+//                         </button>
+//                         <button
+//                             onClick={onGetStarted}
+//                             className="border-2 border-purple-400 text-purple-300 hover:bg-purple-400 hover:text-white font-semibold py-4 px-8 rounded-full text-lg transition-all"
+//                         >
+//                             Report a Shortage
+//                         </button>
+//                     </div>
+                    
 //                 </div>
 //             </section>
             
@@ -231,12 +348,27 @@
 //     }
 
 //     try {
+//       let newUserId;
 //       if (isRegistering) {
-//         await account.create(ID.unique(), formData.email, formData.password, formData.name);
+//         // Create Appwrite account
+//         const createdUser = await account.create(ID.unique(), formData.email, formData.password, formData.name);
+//         newUserId = createdUser.$id;
+//         // Create user document in Appwrite users collection
+//         await databases.createDocument(
+//           DB_ID,
+//           userCollectionId,
+//           newUserId, // Use Appwrite user ID as document ID
+//           {
+//             userId: newUserId,
+//             name: formData.name,
+//             email: formData.email,
+//             role: 'patient', // Default role, or set as needed
+//           }
+//         );
 //       }
 //       await account.createEmailPasswordSession(formData.email, formData.password);
 //       const user = await account.get();
-//       onLoginSuccess(user, userType);
+//       onLoginSuccess(user);
 //     } catch (err) {
 //       console.error('Authentication failed:', err);
 //       setError(err.message || 'An error occurred. Please try again.');
@@ -459,7 +591,8 @@
 //     checkSession();
 //   }, []);
 
-//   const handleLoginSuccess = (user, role) => {
+//   const handleLoginSuccess = async (user) => {
+//     const role = await fetchUserRole(user.email);
 //     setLoggedInUser(user);
 //     setUserRole(role);
 //     localStorage.setItem('userRole', role);
@@ -524,7 +657,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Client, Account, ID } from 'appwrite';
-import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield } from 'lucide-react';
+import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield, IndianRupee } from 'lucide-react';
 
 // Import all your components
 import MedicineShortageMap from './components/MedicineShortageMap';
@@ -532,6 +665,7 @@ import Dashboard from './components/Dashboard';
 import Alerts from './components/Alerts';
 import ReportShortage from './components/ReportShortage';
 import InventoryManagement from './components/InventoryManagement';
+import PriceFinder from './components/PriceFinder'; // 1. IMPORTED PRICEFINDER
 import { databases } from './lib/appwrite.js'; // Ensure this path is correct
 
 // --- Appwrite Configuration ---
@@ -748,6 +882,8 @@ function MainLayout({ user, userRole, onLogout }) {
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
       { id: 'map', label: 'Live Map', icon: Map },
       { id: 'report', label: 'Report Shortage', icon: AlertTriangle },
+      // 2. ADDED NAVIGATION ITEM
+      { id: 'priceFinder', label: 'Price Finder', icon: IndianRupee },
     ],
     pharmacy: [
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -755,10 +891,9 @@ function MainLayout({ user, userRole, onLogout }) {
       { id: 'alerts', label: 'Alerts', icon: Bell },
       { id: 'report', label: 'Report Shortage', icon: AlertTriangle },
     ],
-    
   };
 
-  const navigationItems = navigationConfig[userRole];
+  const navigationItems = navigationConfig[userRole] || navigationConfig.patient; // Default to patient view
 
   const renderContent = () => {
     switch (activeTab) {
@@ -767,7 +902,8 @@ function MainLayout({ user, userRole, onLogout }) {
       case 'alerts': return <Alerts />;
       case 'inventory': return <InventoryManagement />;
       case 'report': return <ReportShortage />;
-      
+      // 3. ADDED RENDER LOGIC FOR THE COMPONENT
+      case 'priceFinder': return <PriceFinder />;
       default: return <Dashboard userRole={userRole} />;
     }
   };
@@ -821,7 +957,6 @@ function MainLayout({ user, userRole, onLogout }) {
               <button className="p-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:bg-white/20 transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
-              
             </div>
           </header>
 
@@ -884,13 +1019,13 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
             userId: newUserId,
             name: formData.name,
             email: formData.email,
-            role: 'patient', // Default role, or set as needed
+            role: userType, // Set role based on selection
           }
         );
       }
       await account.createEmailPasswordSession(formData.email, formData.password);
       const user = await account.get();
-      onLoginSuccess(user);
+      onLoginSuccess(user, isRegistering ? userType : null);
     } catch (err) {
       console.error('Authentication failed:', err);
       setError(err.message || 'An error occurred. Please try again.');
@@ -903,8 +1038,8 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
     try {
       account.createOAuth2Session(
         'google',
-        window.location.origin, // Success URL
-        window.location.origin  // Failure URL
+        `${window.location.origin}`, // Success URL
+        `${window.location.origin}`  // Failure URL
       );
     } catch (err) {
       console.error('Google OAuth error:', err);
@@ -919,7 +1054,6 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
   const userTypeOptions = [
     { value: 'patient', label: 'Patient / Public', description: 'Report shortages and find medicine', icon: Users },
     { value: 'pharmacy', label: 'Pharmacy', description: 'Manage inventory and stock levels', icon: Briefcase }
-    
   ];
 
   return (
@@ -948,32 +1082,28 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
                   ← Back
                 </button>
               </div>
-
-              {!isRegistering && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">I am a...</label>
-                  <div className="space-y-2">
-                    {userTypeOptions.map((option) => (
-                      <label key={option.value} className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 border border-white/10 has-[:checked]:bg-purple-500/10 has-[:checked]:border-purple-500/30 transition-all">
-                        <input 
-                          type="radio" 
-                          name="userType" 
-                          value={option.value} 
-                          checked={userType === option.value} 
-                          onChange={(e) => setUserType(e.target.value)} 
-                          className="mt-1 bg-transparent border-gray-500 text-purple-500 focus:ring-purple-500" 
-                        />
-                        <option.icon className="w-5 h-5 text-purple-400 mt-0.5" />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-white">{option.label}</div>
-                          <div className="text-xs text-gray-400">{option.description}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+              
+              <label className="block text-sm font-medium text-gray-300 mb-3">I am a...</label>
+              <div className="space-y-2">
+                {userTypeOptions.map((option) => (
+                  <label key={option.value} className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 border border-white/10 has-[:checked]:bg-purple-500/10 has-[:checked]:border-purple-500/30 transition-all">
+                    <input 
+                      type="radio" 
+                      name="userType" 
+                      value={option.value} 
+                      checked={userType === option.value} 
+                      onChange={(e) => setUserType(e.target.value)} 
+                      className="mt-1 bg-transparent border-gray-500 text-purple-500 focus:ring-purple-500" 
+                    />
+                    <option.icon className="w-5 h-5 text-purple-400 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-white">{option.label}</div>
+                      <div className="text-xs text-gray-400">{option.description}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+             
               {isRegistering && (
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300">Full Name</label>
@@ -1015,7 +1145,6 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
                     value={formData.password} 
                     onChange={handleChange} 
                     placeholder="••••••••"
-                    className="pr-10"
                   />
                   <button 
                     type="button" 
@@ -1051,11 +1180,11 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
                 onClick={handleGoogleLogin} 
                 className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-white/20 rounded-md shadow-sm text-sm font-medium text-gray-200 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-purple-500 transition-colors"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
                 Sign in with Google
               </button>
@@ -1087,6 +1216,29 @@ export default function App() {
   const [configError, setConfigError] = useState('');
   const [showLogin, setShowLogin] = useState(false);
 
+  // Helper function to fetch user role from your 'users' collection
+  const fetchUserRole = async (email) => {
+    if (!DB_ID || !userCollectionId) {
+      console.error("Database or User Collection ID is not configured.");
+      return 'patient'; // Default role
+    }
+    try {
+      const response = await databases.listDocuments(
+        DB_ID,
+        userCollectionId,
+        [`equal("email", "${email}")`]
+      );
+      if (response.documents.length > 0) {
+        return response.documents[0].role;
+      }
+      return 'patient'; // Default if not found
+    } catch (error) {
+      console.error("Failed to fetch user role:", error);
+      return 'patient'; // Default on error
+    }
+  };
+
+
   useEffect(() => {
     if (!appwriteProjectId || !appwriteEndpoint) {
       const errorMsg = "Appwrite configuration is missing. Please check your .env file for VITE_APPWRITE_ENDPOINT and VITE_APPWRITE_PROJECT_ID.";
@@ -1099,8 +1251,10 @@ export default function App() {
     const checkSession = async () => {
       try {
         const user = await account.get();
+        const role = await fetchUserRole(user.email);
         setLoggedInUser(user);
-        setUserRole(localStorage.getItem('userRole') || 'patient');
+        setUserRole(role);
+        localStorage.setItem('userRole', role);
       } catch (error) {
         console.log('No active session.');
         setLoggedInUser(null);
@@ -1113,8 +1267,8 @@ export default function App() {
     checkSession();
   }, []);
 
-  const handleLoginSuccess = async (user) => {
-    const role = await fetchUserRole(user.email);
+  const handleLoginSuccess = async (user, newRole = null) => {
+    const role = newRole || await fetchUserRole(user.email);
     setLoggedInUser(user);
     setUserRole(role);
     localStorage.setItem('userRole', role);

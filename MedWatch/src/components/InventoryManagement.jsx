@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, Search, X, Package, PackageCheck, PackageX, Calendar, AlertTriangle } from 'lucide-react';
-import { databases } from '../lib/appwrite'; // adjust path if needed
+import { databases } from '../lib/appwrite';
 
 const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 const MEDICINE_COLLECTION_ID = import.meta.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID;
@@ -56,16 +56,12 @@ const InventoryManagement = () => {
   const handleCreate = async (newItem) => {
     try {
       const medicineData = {
-        name: newItem.name,
-        stock: parseInt(newItem.stock, 10),
-        category: newItem.category || 'General',
-        expiryDate: newItem.expiryDate || null,
-        batchNumber: newItem.batchNumber || null,
-        manufacturer: newItem.manufacturer || null,
-        price: parseFloat(newItem.price) || 0,
-        description: newItem.description || null,
-        lastUpdated: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
+        medicineName: newItem.name,
+        currentStock: parseInt(newItem.stock, 10),
+        disease: newItem.category || 'General',
+        company: newItem.company || '',
+        currentPrice: parseFloat(newItem.price) || 0,
+
       };
 
       const res = await databases.createDocument(DB_ID, MEDICINE_COLLECTION_ID, 'unique()', medicineData);
@@ -250,53 +246,22 @@ const InventoryManagement = () => {
                   </td>
                 </tr>
               ) : (
-                [
-  {
-    $id: '1',
-    name: 'Paracetamol',
-    stock: 30,
-    category: 'Fever',
-    manufacturer: 'MediLife',
-    batchNumber: 'B123',
-    expiryDate: '2025-12-31',
-    price: 20,
-  },
-  {
-    $id: '2',
-    name: 'Ibuprofen',
-    stock: 5,
-    category: 'Pain Relief',
-    manufacturer: 'PharmaPlus',
-    batchNumber: 'I456',
-    expiryDate: '2024-08-10',
-    price: 35.5,
-  },
-  {
-    $id: '3',
-    name: 'Cetirizine',
-    stock: 0,
-    category: 'Allergy',
-    manufacturer: 'AllergyCare',
-    batchNumber: 'C789',
-    expiryDate: '2023-09-01',
-    price: 15,
-  }
-].map(item => {
-                  const status = getStockStatus(item.stock);
+                filteredInventory.map(item => {
+                  const status = getStockStatus(item.currentStock);
                   return (
                     <tr key={item.$id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
                       <td className="p-4">
                         <div>
-                          <div className="font-medium text-white text-lg">{item.name}</div>
+                          <div className="font-medium text-white text-lg">{item.medicineName}</div>
                           <div className="text-sm text-gray-400">
-                            {item.category && <span className="inline-block bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs mr-2">{item.category}</span>}
-                            {item.manufacturer && <span>by {item.manufacturer}</span>}
+                            {item.disease && <span className="inline-block bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs mr-2">{item.disease}</span>}
+                            {item.company && <span>by {item.company}</span>}
                           </div>
                           {item.batchNumber && <div className="text-xs text-gray-500 mt-1">Batch: {item.batchNumber}</div>}
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className="text-white font-bold text-xl">{item.stock}</span>
+                        <span className="text-white font-bold text-xl">{item.currentStock}</span>
                         <span className="text-gray-400 text-sm ml-1">units</span>
                       </td>
                       <td className="p-4">
@@ -320,7 +285,7 @@ const InventoryManagement = () => {
                       </td>
                       <td className="p-4">
                         <span className="text-white font-medium">
-                          {item.price ? `₹${item.price.toFixed(2)}` : 'N/A'}
+                          {item.currentPrice ? `₹${item.currentPrice.toFixed(2)}` : 'N/A'}
                         </span>
                       </td>
                       <td className="p-4 text-right">

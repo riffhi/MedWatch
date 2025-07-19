@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { MapPin, Camera, AlertTriangle, CheckCircle } from 'lucide-react';
+import { databases } from '../lib/appwrite';
+
+const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+const MEDICINE_ISSUE_COLLECTION_ID = import.meta.env.VITE_APPWRITE_MEDICINE_ISSUE_COLLECTION_ID;
 
 const ReportShortage = () => {
   const [formData, setFormData] = useState({
@@ -9,24 +13,39 @@ const ReportShortage = () => {
     issue: '',
     price: '',
     description: '',
-    contact: ''
+    contact_information: ''
   });
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, you would send this data to a server/API
-    console.log('Report submitted:', formData);
-    setSubmitted(true);
-    // Reset form after a few seconds
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        medicine: '', pharmacy: '', location: '', issue: '', 
-        price: '', description: '', contact: ''
-      });
-    }, 4000);
+    try {
+      const reportData = {
+        medicineName: formData.medicine,
+        pharmacyName: formData.pharmacy,
+        location: formData.location,
+        issueType: formData.issue,
+        price: parseFloat(formData.price) || 0,
+        description: formData.description || '',
+        contact_information: formData.contact_information || '',
+      };
+
+      await databases.createDocument(DB_ID, MEDICINE_ISSUE_COLLECTION_ID, 'unique()', reportData);
+      
+      setSubmitted(true);
+      // Reset form after a few seconds
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          medicine: '', pharmacy: '', location: '', issue: '', 
+          price: '', description: '', contact_information: ''
+        });
+      }, 4000);
+    } catch (err) {
+      console.error('Failed to submit report:', err);
+      alert('Failed to submit report. Please try again.');
+    }
   };
 
   const handleChange = (e) => {
@@ -159,7 +178,7 @@ const ReportShortage = () => {
             <input
               type="text"
               name="contact"
-              value={formData.contact}
+              value={formData.contact_information}
               onChange={handleChange}
               placeholder="Phone or email (for follow-up)"
               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"

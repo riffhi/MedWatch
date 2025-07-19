@@ -5,7 +5,7 @@ import { IndianRupee, Search, Tag, Building, ServerCrash, Wind } from 'lucide-re
 
 // --- Configuration ---
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID; 
+const COLLECTION_ID = import.meta.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID; 
 
 const PriceFinder = () => {
   const [medicineName, setMedicineName] = useState('');
@@ -36,6 +36,7 @@ const PriceFinder = () => {
         Query.search('medicineName', medicineName),
         Query.limit(50)
       ]);
+      console.log("Fetched:", response);
       const sortedResults = response.documents.sort((a, b) => a.currentPrice - b.currentPrice);
       setResults(sortedResults);
       console.log(response);

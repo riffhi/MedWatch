@@ -317,9 +317,9 @@ function MainLayout({ user, userRole, onLogout }) {
               <p className="text-gray-400 text-sm capitalize">{userRole} Dashboard</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:bg-white/20 transition-colors">
+              {/* <button className="p-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:bg-white/20 transition-colors">
                 <Bell className="w-5 h-5" />
-              </button>
+              </button> */}
             </div>
           </header>
 

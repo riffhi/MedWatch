@@ -1,22 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, Search, X, Package, PackageCheck, PackageX } from 'lucide-react';
+import { databases } from '../lib/appwrite'; // adjust path if needed
 
-// Mock initial data for the inventory
-const initialInventory = [
-  { id: 1, name: 'Insulin (100 IU)', stock: 15, lastUpdated: '2025-07-19T08:30:00Z' },
-  { id: 2, name: 'Levothyroxine 50mcg', stock: 0, lastUpdated: '2025-07-18T14:00:00Z' },
-  { id: 3, name: 'Metformin 500mg', stock: 85, lastUpdated: '2025-07-19T10:15:00Z' },
-  { id: 4, name: 'Amlodipine 5mg', stock: 8, lastUpdated: '2025-07-19T09:05:00Z' },
-  { id: 5, name: 'Atorvastatin 20mg', stock: 120, lastUpdated: '2025-07-18T11:45:00Z' },
-  { id: 6, name: 'Paracetamol 500mg', stock: 250, lastUpdated: '2025-07-19T11:00:00Z' },
-];
+const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+const MEDICINE_COLLECTION_ID = import.meta.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID; // set this in your .env
 
 const InventoryManagement = () => {
-  const [inventory, setInventory] = useState(initialInventory);
+  const [inventory, setInventory] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // Holds the item to be deleted
-  const [editingItem, setEditingItem] = useState(null); // Holds the item being edited
+  const [editingItem, setEditingItem] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+
+  useEffect(() => {
+    async function fetchMedicines() {
+      try {
+        const res = await databases.listDocuments(DB_ID, MEDICINE_COLLECTION_ID);
+        setInventory(res.documents);
+      } catch (err) {
+        console.error('Failed to fetch medicines:', err);
+      }
+    }
+    fetchMedicines();
+  }, []);
 
   const getStockStatus = (stock) => {
     if (stock === 0) return { text: 'Out of Stock', color: 'text-red-400', icon: <PackageX className="w-4 h-4" /> };
@@ -24,18 +30,41 @@ const InventoryManagement = () => {
     return { text: 'In Stock', color: 'text-green-400', icon: <PackageCheck className="w-4 h-4" /> };
   };
 
-  const handleCreate = (newItem) => {
-    setInventory([{ ...newItem, id: Date.now(), lastUpdated: new Date().toISOString() }, ...inventory]);
+  const handleCreate = async (newItem) => {
+    try {
+      const res = await databases.createDocument(DB_ID, MEDICINE_COLLECTION_ID, undefined, {
+        name: newItem.name,
+        stock: newItem.stock,
+        lastUpdated: new Date().toISOString(),
+      });
+      setInventory([res, ...inventory]);
+    } catch (err) {
+      console.error('Failed to add medicine:', err);
+    }
   };
 
-  const handleUpdate = (updatedItem) => {
-    setInventory(inventory.map(item => item.id === updatedItem.id ? { ...updatedItem, lastUpdated: new Date().toISOString() } : item));
-    setEditingItem(null);
+  const handleUpdate = async (updatedItem) => {
+    try {
+      const res = await databases.updateDocument(DB_ID, MEDICINE_COLLECTION_ID, updatedItem.$id, {
+        name: updatedItem.name,
+        stock: updatedItem.stock,
+        lastUpdated: new Date().toISOString(),
+      });
+      setInventory(inventory.map(item => item.$id === updatedItem.$id ? res : item));
+      setEditingItem(null);
+    } catch (err) {
+      console.error('Failed to update medicine:', err);
+    }
   };
 
-  const handleDelete = (itemId) => {
-    setInventory(inventory.filter(item => item.id !== itemId));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (itemId) => {
+    try {
+      await databases.deleteDocument(DB_ID, MEDICINE_COLLECTION_ID, itemId);
+      setInventory(inventory.filter(item => item.$id !== itemId));
+      setShowDeleteConfirm(null);
+    } catch (err) {
+      console.error('Failed to delete medicine:', err);
+    }
   };
 
   const filteredInventory = inventory.filter(item =>
@@ -86,7 +115,7 @@ const InventoryManagement = () => {
             </thead>
             <tbody>
               {filteredInventory.map(item => (
-                <tr key={item.id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                <tr key={item.$id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
                   <td className="p-4 text-white font-medium">{item.name}</td>
                   <td className="p-4 text-white font-bold text-lg">{item.stock}</td>
                   <td className="p-4">

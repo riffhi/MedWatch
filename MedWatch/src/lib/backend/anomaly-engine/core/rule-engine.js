@@ -3,9 +3,9 @@
  * Implements predefined business rules for detecting medicine shortage anomalies
  */
 
-const EventEmitter = require('events');
-const fs = require('fs').promises;
-const path = require('path');
+import EventEmitter from 'events';
+import fs from 'fs/promises';
+import path from 'path';
 
 class RuleEngine extends EventEmitter {
   constructor(logger) {
@@ -23,12 +23,12 @@ class RuleEngine extends EventEmitter {
       for (const file of ruleFiles) {
         if (file.endsWith('.js')) {
           const rulePath = path.join(rulesPath, file);
-          const ruleModule = require(rulePath);
+          const ruleModule = await import(rulePath);
           
-          if (Array.isArray(ruleModule)) {
-            ruleModule.forEach(rule => this.addRule(rule));
+          if (Array.isArray(ruleModule.default)) {
+            ruleModule.default.forEach(rule => this.addRule(rule));
           } else {
-            this.addRule(ruleModule);
+            this.addRule(ruleModule.default);
           }
         }
       }
@@ -261,4 +261,4 @@ class RuleEngine extends EventEmitter {
   }
 }
 
-module.exports = RuleEngine;
+export default RuleEngine;

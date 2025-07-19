@@ -80,15 +80,11 @@ const InventoryManagement = () => {
   const handleUpdate = async (updatedItem) => {
     try {
       const medicineData = {
-        name: updatedItem.name,
-        stock: parseInt(updatedItem.stock, 10),
-        category: updatedItem.category || 'General',
-        expiryDate: updatedItem.expiryDate || null,
-        batchNumber: updatedItem.batchNumber || null,
-        manufacturer: updatedItem.manufacturer || null,
-        price: parseFloat(updatedItem.price) || 0,
-        description: updatedItem.description || null,
-        lastUpdated: new Date().toISOString(),
+        medicineName: updatedItem.name,
+        currentStock: parseInt(updatedItem.stock, 10),
+        disease: updatedItem.category || 'General',
+        company: updatedItem.company || '',
+        currentPrice: parseFloat(updatedItem.price) || 0,
       };
 
       const res = await databases.updateDocument(DB_ID, MEDICINE_COLLECTION_ID, updatedItem.$id, medicineData);
@@ -112,9 +108,9 @@ const InventoryManagement = () => {
   };
 
   const filteredInventory = inventory.filter(item =>
-    item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
+    item.medicineName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.disease?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.company?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatDate = (dateString) => {
@@ -194,7 +190,7 @@ const InventoryManagement = () => {
             <PackageX className="w-8 h-8 text-red-400" />
             <div>
               <p className="text-sm text-gray-400">Out of Stock</p>
-              <p className="text-2xl font-bold text-white">{inventory.filter(item => item.stock === 0).length}</p>
+              <p className="text-2xl font-bold text-white">{inventory.filter(item => item.currentStock === 0).length}</p>
             </div>
           </div>
         </div>
@@ -204,7 +200,7 @@ const InventoryManagement = () => {
             <AlertTriangle className="w-8 h-8 text-orange-400" />
             <div>
               <p className="text-sm text-gray-400">Low Stock</p>
-              <p className="text-2xl font-bold text-white">{inventory.filter(item => item.stock > 0 && item.stock <= 10).length}</p>
+              <p className="text-2xl font-bold text-white">{inventory.filter(item => item.currentStock > 0 && item.currentStock <= 10).length}</p>
             </div>
           </div>
         </div>
@@ -254,7 +250,38 @@ const InventoryManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filteredInventory.map(item => {
+                [
+  {
+    $id: '1',
+    name: 'Paracetamol',
+    stock: 30,
+    category: 'Fever',
+    manufacturer: 'MediLife',
+    batchNumber: 'B123',
+    expiryDate: '2025-12-31',
+    price: 20,
+  },
+  {
+    $id: '2',
+    name: 'Ibuprofen',
+    stock: 5,
+    category: 'Pain Relief',
+    manufacturer: 'PharmaPlus',
+    batchNumber: 'I456',
+    expiryDate: '2024-08-10',
+    price: 35.5,
+  },
+  {
+    $id: '3',
+    name: 'Cetirizine',
+    stock: 0,
+    category: 'Allergy',
+    manufacturer: 'AllergyCare',
+    batchNumber: 'C789',
+    expiryDate: '2023-09-01',
+    price: 15,
+  }
+].map(item => {
                   const status = getStockStatus(item.stock);
                   return (
                     <tr key={item.$id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
@@ -351,14 +378,11 @@ const InventoryManagement = () => {
 // Enhanced Modal for Creating and Editing Items
 const CreateEditModal = ({ item, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    name: item?.name || '',
-    stock: item?.stock || 0,
-    category: item?.category || '',
-    expiryDate: item?.expiryDate || '',
-    batchNumber: item?.batchNumber || '',
-    manufacturer: item?.manufacturer || '',
-    price: item?.price || '',
-    description: item?.description || '',
+    name: item?.medicineName || '',
+    stock: item?.currentStock || 0,
+    category: item?.disease || '',
+    company: item?.company || '',
+    price: item?.currentPrice || '',
   });
 
   const handleSubmit = (e) => {
@@ -399,14 +423,14 @@ const CreateEditModal = ({ item, onClose, onSave }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Category
+                Disease/Category
               </label>
               <input
                 type="text"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="e.g., Antibiotic, Painkiller"
+                placeholder="e.g., Fever, Pain Relief"
               />
             </div>
 
@@ -439,56 +463,18 @@ const CreateEditModal = ({ item, onClose, onSave }) => {
               />
             </div>
 
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Expiry Date
-              </label>
-              <input
-                type="date"
-                value={formData.expiryDate}
-                onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Batch Number
+                Company/Manufacturer
               </label>
               <input
                 type="text"
-                value={formData.batchNumber}
-                onChange={(e) => setFormData({ ...formData, batchNumber: e.target.value })}
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                 className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="e.g., BT001234"
+                placeholder="Manufacturer name"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Manufacturer
-            </label>
-            <input
-              type="text"
-              value={formData.manufacturer}
-              onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="Manufacturer name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows="3"
-              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-              placeholder="Optional description or notes"
-            />
           </div>
 
           <div className="flex gap-4 pt-4">
@@ -525,7 +511,7 @@ const DeleteConfirmModal = ({ item, onClose, onDelete }) => {
         </div>
         
         <p className="text-gray-300 mb-6">
-          Are you sure you want to delete <span className="font-bold text-red-400">{item.name}</span> from the inventory? 
+          Are you sure you want to delete <span className="font-bold text-red-400">{item.medicineName}</span> from the inventory? 
           This action cannot be undone and will permanently remove all associated data.
         </p>
         

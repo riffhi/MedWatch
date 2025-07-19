@@ -175,14 +175,14 @@ const ReportShortage = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Contact Information (Optional)</label>
-            <input
-              type="text"
-              name="contact"
-              value={formData.contact_information}
-              onChange={handleChange}
-              placeholder="Phone or email (for follow-up)"
-              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
-            />
+                          <input
+                type="text"
+                name="contact_information"
+                value={formData.contact_information}
+                onChange={handleChange}
+                placeholder="Phone or email (for follow-up)"
+                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
+              />
             <p className="text-xs text-gray-500 mt-1">This information will be kept confidential.</p>
           </div>
 

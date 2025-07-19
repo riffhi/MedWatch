@@ -14,9 +14,10 @@ const Dashboard = ({ userRole }) => {
               <StatCard title="Out of Stock" value="7" change="-3 from yesterday" icon={TrendingUp} color="red" />
               <StatCard title="Pending Orders" value="12" change="Processing" icon={Clock} color="purple" />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <RecentActivity />
-              <StockChart />
+            <div className="flex justify-center">
+              <div className="w-full max-w-2xl">
+                <RecentActivity />
+              </div>
             </div>
           </div>
         );
@@ -123,18 +124,6 @@ const RecentActivity = () => (
   </div>
 );
 
-const StockChart = () => (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
-    <h3 className="text-lg font-semibold text-white mb-6">Stock Levels</h3>
-    <div className="h-48 flex items-end justify-between space-x-2">
-      {[65, 45, 78, 52, 90, 35, 67, 89, 23, 76, 54, 88].map((height, index) => (
-        <div key={index} className="flex-1 bg-gradient-to-t from-purple-500/20 to-purple-500/60 rounded-t-lg relative" style={{ height: `${height}%` }}>
-          <div className="absolute top-0 left-0 right-0 h-1 bg-purple-500 rounded-t-lg" />
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 const ShortageAlerts = () => (
   <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">

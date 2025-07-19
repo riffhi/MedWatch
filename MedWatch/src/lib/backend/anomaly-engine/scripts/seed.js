@@ -80,11 +80,53 @@ async function seedDatabase() { // Keeping the name 'seedDatabase' but functiona
       return;
     }
 
+    // --- Helper Functions for Calculations (for demonstration purposes, not saved to medicine doc) ---
+    /**
+     * Calculates the current decline rate of stock based on recent history.
+     * @param {Array<number>} stockHistory - Array of historical stock levels (most recent first).
+     * @returns {number|null} The average daily decline rate, or null if insufficient data.
+     */
+    const calculateCurrentDeclineRate = (stockHistory) => {
+      if (!stockHistory || stockHistory.length < 3) {
+        return null; // Not enough data to calculate a meaningful decline rate
+      }
+      // Assuming stockHistory is ordered from most recent to oldest
+      const recent = stockHistory.slice(0, 3); // Take the 3 most recent points
+      const decline = recent[0] - recent[2];
+      const periods = 2;
+      return decline / periods;
+    };
+
+    /**
+     * Calculates the projected stockout date based on current stock and daily consumption.
+     * @param {number} currentStock - The current stock level.
+     * @param {number} dailyConsumption - The average daily consumption rate.
+     * @returns {string|null} The projected stockout date in ISO string format, or null if not applicable.
+     */
+    const calculateProjectedStockoutDate = (currentStock, dailyConsumption) => {
+      if (currentStock <= 0 || dailyConsumption <= 0) {
+        return null; // Already out of stock or no consumption
+      }
+      const daysRemaining = currentStock / dailyConsumption;
+      const stockoutDate = new Date();
+      stockoutDate.setDate(stockoutDate.getDate() + Math.floor(daysRemaining));
+      return stockoutDate.toISOString();
+    };
+    // --- End Helper Functions ---
+
+
     for (const record of records) {
       try {
+        // These calculations are for demonstration *within this script* if needed.
+        // They are NOT saved to the medicine document by this script, as they are
+        // derived metrics best handled by the anomaly detection engine.
+        // const currentDeclineRate = calculateCurrentDeclineRate(record.stockHistory);
+        // const projectedStockoutDate = calculateProjectedStockoutDate(record.currentStock, record.dailyConsumption);
+
+        // console.log(`Medicine: ${record.medicineName}, Decline Rate: ${currentDeclineRate}, Stockout Date: ${projectedStockoutDate}`);
+
         // Extract relevant fields from the fetched Appwrite document.
-        // Appwrite documents include metadata like $id, $createdAt, etc.
-        // We're creating a new object with just the data fields we care about.
+        // Ensure only attributes defined in your Appwrite Medicine Collection schema are included.
         const documentData = {
           medicineID: record.medicineID,
           medicineName: record.medicineName,
@@ -98,15 +140,14 @@ async function seedDatabase() { // Keeping the name 'seedDatabase' but functiona
           criticalThreshold: record.criticalThreshold,
           averageMarketPrice: record.averageMarketPrice,
           dailyConsumption: record.dailyConsumption,
-          // Assuming stockHistory and priceHistory are already stored as arrays/objects in Appwrite.
           stockHistory: record.stockHistory,
           priceHistory: record.priceHistory,
           supplierDelay: record.supplierDelay,
           lastUpdatedAt: record.lastUpdatedAt,
-          description: record.description || 'No description provided.', // Ensure description is present
-          causesOfShortage: record.causesOfShortage || '', // Ensure causesOfShortage is present
-          // NEW: Include the 'projectedStockoutDate' attribute from the fetched record
-          projectedStockoutDate: record.projectedStockoutDate || null, // Provide a default null if not present
+          description: record.description || 'No description provided.',
+          causesOfShortage: record.causesOfShortage || '',
+          // REMOVED: projectedStockoutDate as it's an unknown attribute for the medicine collection
+          // projectedStockoutDate: record.projectedStockoutDate || null,
         };
 
         // Update the existing document using its $id.

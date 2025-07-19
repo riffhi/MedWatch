@@ -58,13 +58,7 @@ function MainLayout({ user, userRole, onLogout }) {
       { id: 'alerts', label: 'Alerts', icon: Bell },
       { id: 'report', label: 'Report Shortage', icon: AlertTriangle },
     ],
-    authority: [
-      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-      { id: 'map', label: 'Live Map', icon: Map },
-      { id: 'alerts', label: 'Alerts', icon: Bell },
-      { id: 'users', label: 'Users', icon: Users},
-      { id: 'settings', label: 'Settings', icon: Settings },
-    ],
+    
   };
 
   const navigationItems = navigationConfig[userRole];
@@ -76,8 +70,7 @@ function MainLayout({ user, userRole, onLogout }) {
       case 'alerts': return <Alerts />;
       case 'inventory': return <InventoryManagement />;
       case 'report': return <ReportShortage />;
-      case 'settings': return <div className="text-white">Settings Page</div>;
-      case 'users': return <div className="text-white">Users Page</div>;
+      
       default: return <Dashboard userRole={userRole} />;
     }
   };
@@ -131,10 +124,7 @@ function MainLayout({ user, userRole, onLogout }) {
               <button className="p-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:bg-white/20 transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
-              <button className="flex items-center gap-2 p-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:bg-white/20 transition-colors">
-                <img src={`https://ui-avatars.com/api/?name=${user.name}&background=6d28d9&color=fff`} alt="avatar" className="w-8 h-8 rounded-md" />
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              </button>
+              
             </div>
           </header>
 
@@ -231,8 +221,8 @@ const UserLogin = ({ onLoginSuccess }) => {
 
   const userTypeOptions = [
     { value: 'patient', label: 'Patient / Public', description: 'Report shortages and find medicine', icon: Users },
-    { value: 'pharmacy', label: 'Pharmacy', description: 'Manage inventory and stock levels', icon: Briefcase },
-    // { value: 'authority', label: 'Health Authority', description: 'Monitor regional shortage data', icon: BarChart2 }
+    { value: 'pharmacy', label: 'Pharmacy', description: 'Manage inventory and stock levels', icon: Briefcase }
+    
   ];
 
   return (

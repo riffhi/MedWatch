@@ -1,15 +1,12 @@
-// Ensure environment variables are loaded
-import dotenv from 'dotenv';
-dotenv.config();
-
-import express from 'express';
-import cors from 'cors';
-import AnomalyDetector from '../core/anomaly-detector.js';
+const express = require('express');
+const cors = require('cors');
+// Make sure the path is correct based on your folder structure
+const AnomalyDetector = require('../core/anomaly-detector');
 
 class AnomalyAPI {
   constructor(config = {}, logger) {
     this.app = express();
-    this.port = config.port || 3001;
+    this.port = config.port || 3002;
     this.logger = logger || console;
     
     // Pass both the detector config and the database config to the core engine.
@@ -18,9 +15,9 @@ class AnomalyAPI {
     const detectorConfig = {
         ...config.detector,
         dbConfig: {
-            databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
-            medicineCollectionId: import.meta.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID,
-            anomalyCollectionId: import.meta.env.VITE_APPWRITE_ANOMALY_COLLECTION_ID,
+            databaseId: process.env.APPWRITE_DATABASE_ID,
+            medicineCollectionId: process.env.APPWRITE_MEDICINE_COLLECTION_ID,
+            anomalyCollectionId: process.env.APPWRITE_ANOMALY_COLLECTION_ID,
         }
     };
     
@@ -101,4 +98,4 @@ class AnomalyAPI {
   }
 }
 
-export default AnomalyAPI;
+module.exports = AnomalyAPI;

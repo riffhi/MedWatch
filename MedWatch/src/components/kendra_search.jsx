@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Client, Databases, Query } from 'appwrite'; // Make sure to install 'appwrite' package: npm install appwrite
 
 // --- Appwrite Configuration ---
-// IMPORTANT: Replace these with your actual Appwrite project details.
-const APPWRITE_PROJECT_ID = 'YOUR_PROJECT_ID';
-const APPWRITE_DATABASE_ID = 'YOUR_DATABASE_ID';
-const APPWRITE_kendra_COLLECTION_ID = 'YOUR_kendra_COLLECTION_ID';
-const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
+// Using environment variables from .env file
+const APPWRITE_PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+const APPWRITE_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+const APPWRITE_kendra_COLLECTION_ID = import.meta.env.VITE_APPWRITE_kendra_COLLECTION_ID;
+const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;
 
 // Initialize the Appwrite client
 const client = new Client();
@@ -65,8 +65,8 @@ const KendraSearch = () => {
             }
         };
 
-        if (APPWRITE_PROJECT_ID === 'YOUR_PROJECT_ID' || APPWRITE_DATABASE_ID === 'YOUR_DATABASE_ID' || APPWRITE_kendra_COLLECTION_ID === 'YOUR_COLLECTION_ID') {
-            setError("Please configure your Appwrite Project, Database, and Collection IDs in the code.");
+        if (!APPWRITE_PROJECT_ID || !APPWRITE_DATABASE_ID || !APPWRITE_kendra_COLLECTION_ID) {
+            setError("Appwrite configuration is missing. Please check your environment variables.");
             setIsLoading(false);
         } else {
             fetchData();

@@ -9,13 +9,17 @@ const APPWRITE_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 const APPWRITE_kendra_COLLECTION_ID = import.meta.env.VITE_APPWRITE_kendra_COLLECTION_ID;
 const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;
 
-// Initialize the Appwrite client
-const client = new Client();
-client
-    .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT_ID);
+// Initialize the Appwrite client only if configuration is available
+let client = null;
+let databases = null;
 
-const databases = new Databases(client);
+if (APPWRITE_ENDPOINT && APPWRITE_PROJECT_ID) {
+    client = new Client();
+    client
+        .setEndpoint(APPWRITE_ENDPOINT)
+        .setProject(APPWRITE_PROJECT_ID);
+    databases = new Databases(client);
+}
 
 // Component for displaying a single Kendra card
 const KendraCard = ({ kendra }) => (
@@ -50,6 +54,20 @@ const KendraSearch = () => {
         const fetchData = async () => {
             setIsLoading(true);
             setError(null);
+            
+            // Check if Appwrite is properly configured
+            if (!APPWRITE_PROJECT_ID || !APPWRITE_DATABASE_ID || !APPWRITE_kendra_COLLECTION_ID || !APPWRITE_ENDPOINT) {
+                setError("Appwrite configuration is missing. Please check your environment variables. Required variables: VITE_APPWRITE_ENDPOINT, VITE_APPWRITE_PROJECT_ID, VITE_APPWRITE_DATABASE_ID, VITE_APPWRITE_kendra_COLLECTION_ID");
+                setIsLoading(false);
+                return;
+            }
+
+            if (!databases) {
+                setError("Failed to initialize Appwrite client. Please check your configuration.");
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 const response = await databases.listDocuments(
                     APPWRITE_DATABASE_ID,
@@ -60,18 +78,13 @@ const KendraSearch = () => {
                 setFilteredKendraData(response.documents);
             } catch (e) {
                 console.error("Failed to fetch data from Appwrite:", e);
-                setError("Could not load Kendra data. Please check your Appwrite configuration and network connection.");
+                setError("Could not load Kendra data. Please check your Appwrite configuration and network connection. Error: " + e.message);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        if (!APPWRITE_PROJECT_ID || !APPWRITE_DATABASE_ID || !APPWRITE_kendra_COLLECTION_ID) {
-            setError("Appwrite configuration is missing. Please check your environment variables.");
-            setIsLoading(false);
-        } else {
-            fetchData();
-        }
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -123,7 +136,17 @@ const KendraSearch = () => {
                         </div>
                     ) : error ? (
                         <div className="text-center py-10 bg-red-900/20 border border-red-500 rounded-lg p-6">
-                            <p className="text-2xl text-red-400">{error}</p>
+                            <p className="text-2xl text-red-400 mb-4">Configuration Error</p>
+                            <p className="text-lg text-red-300 mb-4">{error}</p>
+                            <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                <p className="text-sm text-gray-300 mb-2">To fix this issue, create a <code className="bg-slate-700 px-2 py-1 rounded">.env</code> file in your project root with:</p>
+                                <pre className="text-xs text-gray-400 bg-slate-900 p-3 rounded overflow-x-auto">
+{`VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+VITE_APPWRITE_PROJECT_ID=your_project_id_here
+VITE_APPWRITE_DATABASE_ID=your_database_id_here
+VITE_APPWRITE_kendra_COLLECTION_ID=your_kendra_collection_id_here`}
+                                </pre>
+                            </div>
                         </div>
                     ) : filteredKendraData.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

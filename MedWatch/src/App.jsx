@@ -24,43 +24,49 @@ if (appwriteEndpoint && appwriteProjectId) {
 }
 const account = new Account(client);
 
-
-// --- Feature Card Component ---
 const FeatureCard = ({ icon: Icon, title, description }) => (
-    <div className="bg-slate-800/50 p-8 rounded-xl shadow-lg text-center hover:shadow-purple-500/20 transition-shadow transform hover:-translate-y-2 border border-white/10">
-        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center">
-            <Icon className="w-8 h-8" />
+    <div className="bg-slate-800/50 p-8 rounded-xl border border-white/10 transition-all duration-300 ease-in-out hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2">
+        <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Icon className="w-6 h-6 text-white" />
+            </div>
+            <h4 className="text-2xl font-bold text-white">{title}</h4>
         </div>
-        <h4 className="mt-6 text-xl font-bold text-white">{title}</h4>
-        <p className="mt-2 text-gray-400">{description}</p>
+        <p className="text-gray-400">{description}</p>
     </div>
 );
 
 // --- Landing Page Component ---
 const LandingPage = ({ onGetStarted }) => {
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+    const [isHeroVisible, setIsHeroVisible] = useState(false);
+
+    useEffect(() => {
+        setIsHeaderVisible(true);
+        const timer = setTimeout(() => setIsHeroVisible(true), 300);
+        return () => clearTimeout(timer);
+    }, []);
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-sans text-gray-300">
-            <header className="p-4 md:p-6">
+            <header className={`p-4 md:p-6 transition-all duration-1000 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}>
                 <div className="container mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+                    <div className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg transition-transform group-hover:rotate-12 group-hover:scale-110">
                             <Activity className="w-6 h-6 text-white" />
                         </div>
-                        <h1 className="text-2xl font-bold text-white">MedWatch</h1>
-
-
+                        <h1 className="text-2xl font-bold text-white transition-colors group-hover:text-purple-300">MedWatch</h1>
                     </div>
                     <button
                         onClick={onGetStarted}
-                        className="bg-purple-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-purple-700 transition-colors shadow-md"
+                        className="bg-purple-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-purple-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
                     >
                         Login / Sign Up
                     </button>
                 </div>
             </header>
 
-            <main className="container mx-auto text-center px-4 py-16 md:py-24">
-                <h2 className="text-4xl md:text-6xl font-extrabold text-white leading-tight">
+             <main className={`container mx-auto text-center px-4 py-16 md:py-24 transition-all duration-1000 delay-300 ${isHeroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+                <h2 className="text-4xl md:text-6xl font-extrabold text-white leading-tight bg-gradient-to-r from-white via-purple-100 to-pink-100 bg-clip-text text-transparent">
                     Ensuring Access to Essential Medicines for Everyone.
                 </h2>
                 <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-gray-400">
@@ -68,11 +74,12 @@ const LandingPage = ({ onGetStarted }) => {
                 </p>
                 <button
                     onClick={onGetStarted}
-                    className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-8 rounded-full text-lg hover:from-purple-700 hover:to-pink-700 transition-transform transform hover:scale-105 shadow-lg"
+                    className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-8 rounded-full text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30"
                 >
                     Get Started
                 </button>
             </main>
+
 
             {/* Features Section */}
             <section className="py-16 bg-black/20">
@@ -86,16 +93,19 @@ const LandingPage = ({ onGetStarted }) => {
                             icon={Users}
                             title="For Patients & Public"
                             description="Report medicine shortages and overpricing instantly. Find nearby pharmacies with stock availability. Get real-time alerts about essential medicine availability in your district."
+                            delay={100}
                         />
                         <FeatureCard
                             icon={Building}
                             title="For Pharmacies"
                             description="Auto-update your medicine inventory through our dashboard or API. Get low-stock alerts. Help serve your community better by sharing real-time availability data."
+                            delay={300}
                         />
                     </div>
                 </div>
             </section>
 
+            
             {/* Key Features Section */}
             <section className="py-16 bg-black/10">
                 <div className="container mx-auto px-4">
@@ -116,8 +126,8 @@ const LandingPage = ({ onGetStarted }) => {
                         </div>
                         <div className="text-center p-6 bg-slate-800/30 rounded-lg border border-white/10">
                             <Bell className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                            <h4 className="text-white font-semibold mb-2">Real-Time Alerts</h4>
-                            <p className="text-gray-400 text-sm">Instant notifications for stakeholders</p>
+                            <h4 className="text-white font-semibold mb-2">Locate Government PMBJP Kendras near you</h4>
+                            <p className="text-gray-400 text-sm">Get the generic medicines at lowest prices</p>
                         </div>
                         <div className="text-center p-6 bg-slate-800/30 rounded-lg border border-white/10">
                             <BarChart2 className="w-12 h-12 text-purple-400 mx-auto mb-4" />
@@ -127,7 +137,7 @@ const LandingPage = ({ onGetStarted }) => {
                     </div>
                 </div>
             </section>
-
+            
             {/* Impact Section */}
             <section className="py-16 bg-black/30">
                 <div className="container mx-auto px-4">
@@ -606,7 +616,7 @@ export default function App() {
         setLoggedInUser(user);
         setUserRole(role);
         localStorage.setItem('userRole', role);
-      } catch (error) {
+      } catch {
         console.log('No active session.');
         setLoggedInUser(null);
         setUserRole(null);

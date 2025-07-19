@@ -25,7 +25,7 @@ if (APPWRITE_ENDPOINT && APPWRITE_PROJECT_ID) {
 const KendraCard = ({ kendra }) => (
     <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:bg-slate-800 hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/10">
         <h2 className="text-xl font-bold text-purple-400 mb-2">{kendra.Name}</h2>
-        <p className="text-sm text-gray-400 mb-4 font-mono">Kendra Code: {kendra['Kendra_Code'] || 'N/A'}</p>
+        <p className="text-sm text-gray-400 mb-4 font-mono">Kendra Code: {kendra['Kendra_code'] || 'N/A'}</p>
         
         <div className="space-y-3 text-gray-300">
             <div className="flex items-start">
@@ -42,6 +42,81 @@ const KendraCard = ({ kendra }) => (
     </div>
 );
 
+// Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        
+        return pages;
+    };
+
+    return (
+        <div className="flex justify-center items-center space-x-2 mt-8">
+            <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-gray-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Previous
+            </button>
+            
+            {getPageNumbers().map((page, index) => (
+                <button
+                    key={index}
+                    onClick={() => typeof page === 'number' && onPageChange(page)}
+                    disabled={page === '...'}
+                    className={`px-3 py-2 rounded-lg transition-colors ${
+                        page === currentPage
+                            ? 'bg-purple-600 text-white'
+                            : page === '...'
+                            ? 'text-gray-500 cursor-default'
+                            : 'bg-slate-800/50 border border-slate-700 text-gray-400 hover:bg-slate-700 hover:text-white'
+                    }`}
+                >
+                    {page}
+                </button>
+            ))}
+            
+            <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-gray-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Next
+            </button>
+        </div>
+    );
+};
+
 // Main Search Component
 const KendraSearch = () => {
     const [allKendraData, setAllKendraData] = useState([]);
@@ -49,6 +124,10 @@ const KendraSearch = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(12); // Show 12 items per page (3x4 grid)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -90,21 +169,35 @@ const KendraSearch = () => {
     useEffect(() => {
         if (!searchTerm) {
             setFilteredKendraData(allKendraData);
-            return;
+        } else {
+            const filtered = allKendraData.filter(kendra => {
+                const query = searchTerm.toLowerCase();
+                return (
+                    kendra.Name?.toLowerCase().includes(query) ||
+                    kendra['State Name']?.toLowerCase().includes(query) ||
+                    kendra['District Name']?.toLowerCase().includes(query) ||
+                    kendra.Address?.toLowerCase().includes(query) ||
+                    kendra['Kendra_code']?.toLowerCase().includes(query) ||
+                    kendra['Pin Code']?.toLowerCase().includes(query)
+                );
+            });
+            setFilteredKendraData(filtered);
         }
-        const filtered = allKendraData.filter(kendra => {
-            const query = searchTerm.toLowerCase();
-            return (
-                kendra.Name?.toLowerCase().includes(query) ||
-                kendra['State Name']?.toLowerCase().includes(query) ||
-                kendra['District Name']?.toLowerCase().includes(query) ||
-                kendra.Address?.toLowerCase().includes(query) ||
-                kendra['Kendra_Code']?.toLowerCase().includes(query) ||
-                kendra['Pin Code']?.toLowerCase().includes(query)
-            );
-        });
-        setFilteredKendraData(filtered);
+        // Reset to first page when search term changes
+        setCurrentPage(1);
     }, [searchTerm, allKendraData]);
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredKendraData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentKendraData = filteredKendraData.slice(startIndex, endIndex);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        // Scroll to top when page changes
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="text-white font-sans">
@@ -149,11 +242,31 @@ VITE_APPWRITE_kendra_COLLECTION_ID=your_kendra_collection_id_here`}
                             </div>
                         </div>
                     ) : filteredKendraData.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredKendraData.map((kendra) => (
-                                <KendraCard key={kendra.$id} kendra={kendra} />
-                            ))}
-                        </div>
+                        <>
+                            {/* Results count */}
+                            <div className="mb-6 text-center">
+                                <p className="text-gray-400">
+                                    Showing {startIndex + 1}-{Math.min(endIndex, filteredKendraData.length)} of {filteredKendraData.length} results
+                                    {searchTerm && ` for "${searchTerm}"`}
+                                </p>
+                            </div>
+                            
+                            {/* Kendra Cards Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {currentKendraData.map((kendra) => (
+                                    <KendraCard key={kendra.$id} kendra={kendra} />
+                                ))}
+                            </div>
+                            
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <Pagination 
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            )}
+                        </>
                     ) : (
                         <div className="text-center py-10">
                             <p className="text-2xl text-gray-400">No results found.</p>

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+
+
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -6,17 +8,13 @@ import {
   AlertTriangle, 
   MapPin, 
   Plus, 
-  Filter,
-  Search,
+  ChevronDown,
   Bell,
   TrendingUp,
-  Activity,
-  Droplets,
-  HeartPulse,
-  Thermometer
+  Activity
 } from 'lucide-react';
 
-// Fix for default markers in react-leaflet which can sometimes break in bundlers like Vite
+// Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -43,6 +41,54 @@ const pharmacyLocations = [
   { id: 4, name: 'Guardian Pharmacy', lat: 22.5756, lng: 88.3669, status: 'low_stock', insulin_stock: 3 },
 ];
 
+// Custom Dropdown Component
+const CustomDropdown = ({ options, selectedValue, onSelect, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const selectedLabel = options.find(opt => opt.value === selectedValue)?.label || placeholder;
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between p-2 bg-white/5 border border-white/20 rounded-md text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+                <span className={selectedValue ? 'text-white' : 'text-gray-400'}>{selectedLabel}</span>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isOpen && (
+                <ul className="absolute z-10 w-full mt-1 bg-slate-800 border border-white/20 rounded-md shadow-lg py-1 animate-fade-in-up max-h-60 overflow-auto">
+                    {options.map((option) => (
+                        <li
+                            key={option.value}
+                            onClick={() => {
+                                onSelect(option.value);
+                                setIsOpen(false);
+                            }}
+                            className="px-3 py-2 text-sm text-gray-200 hover:bg-purple-600/50 cursor-pointer"
+                        >
+                            {option.label}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+};
+
+
 const MedicineShortageMap = () => {
   const [selectedMedicine, setSelectedMedicine] = useState('all');
   const [selectedSeverity, setSelectedSeverity] = useState('all');
@@ -64,34 +110,22 @@ const MedicineShortageMap = () => {
 
   const createCustomIcon = (severity, isPharmacy = false) => {
     const colors = {
-      critical: '#ef4444', // red-500
-      high: '#f97316',     // orange-500
-      medium: '#f59e0b',   // amber-500
-      low: '#84cc16',      // lime-500
+      critical: '#ef4444', 
+      high: '#f97316',     
+      medium: '#f59e0b',   
+      low: '#84cc16',      
       out_of_stock: '#ef4444',
       low_stock: '#f97316',
-      adequate: '#22c55e', // green-500
+      adequate: '#22c55e', 
     };
 
-    const color = colors[severity] || '#6b7280'; // gray-500
+    const color = colors[severity] || '#6b7280';
     const size = isPharmacy ? 28 : 35;
     const symbol = isPharmacy ? '⚕️' : '⚠️';
 
     return L.divIcon({
-      html: `<div style="
-        background-color: ${color};
-        width: ${size}px;
-        height: ${size}px;
-        border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: ${isPharmacy ? '14px' : '18px'};
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        text-shadow: 0 0 2px black;
-      ">${symbol}</div>`,
-      className: 'custom-div-icon', // This class is important for removing default Leaflet styles
+      html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.7); display: flex; align-items: center; justify-content: center; font-size: ${isPharmacy ? '14px' : '18px'}; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: 0 0 2px black;">${symbol}</div>`,
+      className: 'custom-div-icon',
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2]
     });
@@ -107,7 +141,22 @@ const MedicineShortageMap = () => {
     return colors[severity] || 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
   };
 
-  const uniqueMedicines = [...new Set(medicineShortages.map(item => item.name))];
+  const uniqueMedicines = [{ value: 'all', label: 'All Medicines' }, ...[...new Set(medicineShortages.map(item => item.name))].map(name => ({ value: name, label: name }))];
+  const severityOptions = [
+      { value: 'all', label: 'All Severities' },
+      { value: 'critical', label: 'Critical' },
+      { value: 'high', label: 'High' },
+      { value: 'medium', label: 'Medium' },
+      { value: 'low', label: 'Low' },
+  ];
+  const modalSeverityOptions = [
+      { value: 'critical', label: 'Critical (Completely unavailable)' },
+      { value: 'high', label: 'High (Very limited availability)' },
+      { value: 'medium', label: 'Medium (Some availability)' },
+      { value: 'low', label: 'Low (Slightly low stock)' },
+  ];
+
+
   const totalReports = filteredShortages.reduce((sum, item) => sum + item.reports, 0);
   const avgPriceIncrease = totalReports > 0 ? Math.round(filteredShortages.reduce((sum, item) => sum + item.price_increase * item.reports, 0) / totalReports) : 0;
 
@@ -122,38 +171,26 @@ const MedicineShortageMap = () => {
         </div>
         
         <div className="space-y-3">
-          {/* Medicine filter */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Filter by Medicine</label>
-            <select
-              value={selectedMedicine}
-              onChange={(e) => setSelectedMedicine(e.target.value)}
-              className="w-full p-2 bg-white/5 border border-white/20 rounded-md text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="all">All Medicines</option>
-              {uniqueMedicines.map(medicine => (
-                <option key={medicine} value={medicine}>{medicine}</option>
-              ))}
-            </select>
+            <CustomDropdown
+                options={uniqueMedicines}
+                selectedValue={selectedMedicine}
+                onSelect={setSelectedMedicine}
+                placeholder="All Medicines"
+            />
           </div>
 
-          {/* Severity filter */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Filter by Severity</label>
-            <select
-              value={selectedSeverity}
-              onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="w-full p-2 bg-white/5 border border-white/20 rounded-md text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+            <CustomDropdown
+                options={severityOptions}
+                selectedValue={selectedSeverity}
+                onSelect={setSelectedSeverity}
+                placeholder="All Severities"
+            />
           </div>
 
-          {/* Toggle pharmacies */}
           <div className="flex items-center gap-2 pt-1">
             <input
               type="checkbox"
@@ -165,7 +202,6 @@ const MedicineShortageMap = () => {
             <label htmlFor="showPharmacies" className="text-sm text-gray-300">Show Pharmacies</label>
           </div>
 
-          {/* Report button */}
           <button
             onClick={() => setShowReportForm(true)}
             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-md hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2"
@@ -211,7 +247,6 @@ const MedicineShortageMap = () => {
           url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
         />
         
-        {/* Shortage markers */}
         {filteredShortages.map((shortage) => (
           <Marker key={shortage.id} position={[shortage.lat, shortage.lng]} icon={createCustomIcon(shortage.severity)}>
             <Popup className="custom-popup">
@@ -228,7 +263,6 @@ const MedicineShortageMap = () => {
           </Marker>
         ))}
 
-        {/* Pharmacy markers */}
         {showPharmacies && pharmacyLocations.map((pharmacy) => (
           <Marker key={`pharmacy-${pharmacy.id}`} position={[pharmacy.lat, pharmacy.lng]} icon={createCustomIcon(pharmacy.status, true)}>
             <Popup className="custom-popup">
@@ -256,7 +290,7 @@ const MedicineShortageMap = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] animate-fade-in">
           <div className="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl max-w-md w-full m-4">
             <h3 className="text-lg font-bold text-white mb-4">Report Medicine Shortage</h3>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setShowReportForm(false); }}>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Medicine Name</label>
                 <input type="text" className="w-full p-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="e.g., Insulin"/>
@@ -267,12 +301,12 @@ const MedicineShortageMap = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Severity</label>
-                <select className="w-full p-2 bg-white/5 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                  <option>Critical (Completely unavailable)</option>
-                  <option>High (Very limited availability)</option>
-                  <option>Medium (Some availability)</option>
-                  <option>Low (Slightly low stock)</option>
-                </select>
+                <CustomDropdown
+                    options={modalSeverityOptions}
+                    selectedValue={null}
+                    onSelect={(value) => console.log(value)} // Placeholder action
+                    placeholder="Select Severity"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Price Increase (%)</label>

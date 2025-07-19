@@ -532,10 +532,13 @@ import Dashboard from './components/Dashboard';
 import Alerts from './components/Alerts';
 import ReportShortage from './components/ReportShortage';
 import InventoryManagement from './components/InventoryManagement';
+import { databases } from './lib/appwrite.js'; // Ensure this path is correct
 
 // --- Appwrite Configuration ---
 const appwriteEndpoint = import.meta.env.VITE_APPWRITE_ENDPOINT;
 const appwriteProjectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID; // Ensure this is set in your .env file
+const userCollectionId = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID; // Ensure this is set in your .env file
 
 const client = new Client();
 if (appwriteEndpoint && appwriteProjectId) {
@@ -867,12 +870,27 @@ const UserLogin = ({ onLoginSuccess, onBackToLanding }) => {
     }
 
     try {
+      let newUserId;
       if (isRegistering) {
-        await account.create(ID.unique(), formData.email, formData.password, formData.name);
+        // Create Appwrite account
+        const createdUser = await account.create(ID.unique(), formData.email, formData.password, formData.name);
+        newUserId = createdUser.$id;
+        // Create user document in Appwrite users collection
+        await databases.createDocument(
+          DB_ID,
+          userCollectionId,
+          newUserId, // Use Appwrite user ID as document ID
+          {
+            userId: newUserId,
+            name: formData.name,
+            email: formData.email,
+            role: 'patient', // Default role, or set as needed
+          }
+        );
       }
       await account.createEmailPasswordSession(formData.email, formData.password);
       const user = await account.get();
-      onLoginSuccess(user, userType);
+      onLoginSuccess(user);
     } catch (err) {
       console.error('Authentication failed:', err);
       setError(err.message || 'An error occurred. Please try again.');
@@ -1095,7 +1113,8 @@ export default function App() {
     checkSession();
   }, []);
 
-  const handleLoginSuccess = (user, role) => {
+  const handleLoginSuccess = async (user) => {
+    const role = await fetchUserRole(user.email);
     setLoggedInUser(user);
     setUserRole(role);
     localStorage.setItem('userRole', role);

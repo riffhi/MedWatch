@@ -3,7 +3,7 @@
  * Handles alert generation, routing, and notification delivery
  */
 
-const EventEmitter = require('events');
+import EventEmitter from 'events';
 
 class AlertManager extends EventEmitter {
   constructor() {

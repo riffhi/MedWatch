@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Client, Account, ID, Query } from 'appwrite';
-import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield, IndianRupee } from 'lucide-react';
+import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield, IndianRupee, Search } from 'lucide-react';
 
 // Import all your components
 import MedicineShortageMap from './components/MedicineShortageMap';
@@ -9,6 +9,7 @@ import Alerts from './components/Alerts';
 import ReportShortage from './components/ReportShortage';
 import InventoryManagement from './components/InventoryManagement';
 import PriceFinder from './components/PriceFinder'; // 1. IMPORTED PRICEFINDER
+import KendraSearch from './components/kendra_search'; // 2. IMPORTED KENDRA SEARCH
 import { databases } from './lib/appwrite.js'; // Ensure this path is correct
 
 // --- Appwrite Configuration ---
@@ -230,12 +231,16 @@ function MainLayout({ user, userRole, onLogout }) {
       { id: 'report', label: 'Report Shortage', icon: AlertTriangle },
       // 2. ADDED NAVIGATION ITEM
       { id: 'priceFinder', label: 'Price Finder', icon: IndianRupee },
+      // 3. ADDED KENDRA SEARCH NAVIGATION ITEM
+      { id: 'kendraSearch', label: 'Kendra Search', icon: Search },
     ],
     pharmacy: [
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
       { id: 'inventory', label: 'Inventory', icon: Menu },
       { id: 'alerts', label: 'Alerts', icon: Bell },
       { id: 'report', label: 'Report Shortage', icon: AlertTriangle },
+      // 4. ADDED KENDRA SEARCH NAVIGATION ITEM FOR PHARMACY
+      { id: 'kendraSearch', label: 'Kendra Search', icon: Search },
     ],
   };
 
@@ -250,6 +255,8 @@ function MainLayout({ user, userRole, onLogout }) {
       case 'report': return <ReportShortage />;
       // 3. ADDED RENDER LOGIC FOR THE COMPONENT
       case 'priceFinder': return <PriceFinder />;
+      // 5. ADDED RENDER LOGIC FOR KENDRA SEARCH
+      case 'kendraSearch': return <KendraSearch />;
       default: return <Dashboard userRole={userRole} />;
     }
   };

@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { AlertTriangle, Bell, Clock, MapPin, X, CheckCircle, Zap } from 'lucide-react';
 
@@ -169,10 +167,10 @@ const Alerts = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="bg-white/5 border border-white/20 rounded-md px-3 py-1 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="investigating">Investigating</option>
-            <option value="resolved">Resolved</option>
+            <option value="all" className="bg-slate-800 text-white">All</option>
+            <option value="active" className="bg-slate-800 text-white">Active</option>
+            <option value="investigating" className="bg-slate-800 text-white">Investigating</option>
+            <option value="resolved" className="bg-slate-800 text-white">Resolved</option>
           </select>
         </div>
         <div className="flex items-center space-x-2">
@@ -182,11 +180,11 @@ const Alerts = () => {
             onChange={(e) => setFilterSeverity(e.target.value)}
             className="bg-white/5 border border-white/20 rounded-md px-3 py-1 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
-            <option value="all">All</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value="all" className="bg-slate-800 text-white">All</option>
+            <option value="critical" className="bg-slate-800 text-white">Critical</option>
+            <option value="high" className="bg-slate-800 text-white">High</option>
+            <option value="medium" className="bg-slate-800 text-white">Medium</option>
+            <option value="low" className="bg-slate-800 text-white">Low</option>
           </select>
         </div>
       </div>

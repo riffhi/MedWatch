@@ -168,15 +168,7 @@ const ReportShortage = () => {
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-white/10">
-            <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white hover:bg-white/20 transition-colors"
-              >
-                <Camera className="w-4 h-4" />
-                <span>Add Photo</span>
-              </button>
-            </div>
+            
             <button
               type="submit"
               className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-pink-500 transition-all transform hover:scale-105"

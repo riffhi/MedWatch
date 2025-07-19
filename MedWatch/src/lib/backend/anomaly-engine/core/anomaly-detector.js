@@ -1,8 +1,9 @@
 const EventEmitter = require('events');
-const RuleEngine = require('./rule-engine');
+// Update the require path to .cjs extension for RuleEngine
+const RuleEngine = require('./rule-engine.cjs'); // Changed from './rule-engine'
 const MLModelManager = require('./ml-model-manager');
 const DataProcessor = require('./data-processor');
-const AlertManager = require('./alert-manager');
+const AlertManager = require('./alert-manager.cjs'); // Already updated this one
 const DatabaseService = require('./database');
 
 class AnomalyDetector extends EventEmitter {
@@ -24,7 +25,8 @@ class AnomalyDetector extends EventEmitter {
     this.ruleEngine = new RuleEngine(this.logger);
     this.mlModelManager = new MLModelManager(this.logger);
     this.dataProcessor = new DataProcessor(this.logger);
-    this.alertManager = new AlertManager(this.logger);
+    this.alertManager = new AlertManager(this.logger); // Ensure AlertManager constructor accepts logger
+                                                     // (currently it doesn't in the provided AlertManager.js)
 
     this.isRunning = false;
 
@@ -98,79 +100,45 @@ class AnomalyDetector extends EventEmitter {
     for (const dataPoint of data) {
       const anomalies = await this.ruleEngine.evaluate(dataPoint);
       for (const anomaly of anomalies) {
-        // IMPORTANT: The 'anomaly' object returned by ruleEngine.evaluate(dataPoint)
-        // MUST include 'severity', 'message', 'details', 'type', 'confidence', 'causesOfShortages',
-        // AND 'description' to be captured correctly.
-        // For example, ruleEngine should return:
-        // {
-        //   severity: 'high',
-        //   message: 'Rapid stock decline detected',
-        //   type: 'stock-alert',
-        //   details: { /* rule-specific details */ },
-        //   confidence: 0.9,
-        //   causesOfShortages: ['supplier delay', 'increased demand'],
-        //   description: 'Stock levels fell below critical threshold due to unexpected demand surge.'
-        // }
         this.handleAnomalyDetected('rule-based', { ...anomaly, dataPoint, confidence: anomaly.severity === 'critical' ? 1.0 : 0.8 });
       }
     }
   }
 
   async runMLBasedDetection(data) {
-    // FIX: Assign the result of predict to 'predictions' variable
     const predictions = await this.mlModelManager.predict(data);
     for (let i = 0; i < predictions.length; i++) {
       if (predictions[i].isAnomaly) {
-        // IMPORTANT: The 'predictions[i]' object returned by mlModelManager.predict(data)
-        // MUST include 'severity', 'message', 'details', 'type', 'confidence', 'causesOfShortages',
-        // AND 'description' for accurate anomaly reporting.
-        // For example, mlModelManager should return:
-        // {
-        //   isAnomaly: true,
-        //   severity: 'medium',
-        //   message: 'Unusual price fluctuation',
-        //   type: 'price-anomaly',
-        //   details: { /* ML model specific details */ },
-        //   confidence: 0.75,
-        //   causesOfShortages: ['market volatility'],
-        //   description: 'ML model detected abnormal price movement outside typical bounds based on historical data.'
-        // }
         this.handleAnomalyDetected('ml-based', { ...predictions[i], dataPoint: data[i] });
       }
     }
   }
 
   handleAnomalyDetected(detectionType, anomaly) {
-    // Destructure specifically the attributes that are part of the Appwrite schema
     const {
       severity,
       message,
       confidence,
       type,
-      details, // This 'details' might be an object or string
+      details,
       causesOfShortages,
-      description // Destructure 'description' from the incoming anomaly object
+      description
     } = anomaly;
 
     let finalDetailsObject = {};
 
-    // If 'details' from the incoming anomaly is an object, use it
     if (typeof details === 'object' && details !== null) {
       finalDetailsObject = { ...details };
     } else if (typeof details === 'string' && details.trim().startsWith('{') && details.trim().endsWith('}')) {
-      // If 'details' is a string that looks like a JSON object, try parsing it
       try {
         finalDetailsObject = JSON.parse(details);
       } catch (e) {
-        // If parsing fails, store the original string under a specific key
         finalDetailsObject.originalDetails = details;
       }
     } else if (details) {
-        // If details is a non-object, non-JSON string, store it as originalDetails
         finalDetailsObject.originalDetails = details;
     }
 
-    // Add causesOfShortages to the details object
     if (causesOfShortages) {
         finalDetailsObject.causesOfShortages = causesOfShortages;
     } else {
@@ -180,23 +148,17 @@ class AnomalyDetector extends EventEmitter {
 
     const enrichedAnomaly = {
       detectionType,
-      // Use the destructured properties, providing defaults if necessary
       severity: severity || 'medium',
       message: message || `Anomaly detected for medicine ID: ${anomaly.dataPoint ? anomaly.dataPoint.medicineID : 'N/A'}`,
       confidence: confidence,
       type: type || detectionType,
-      // Always stringify the final details object
       details: JSON.stringify(finalDetailsObject),
       
-      // These attributes are consistently generated or defaulted within handleAnomalyDetected
       medicineDataId: anomaly.dataPoint ? anomaly.dataPoint.medicineID : null,
       assignedTo: anomaly.assignedTo || '',
       status: 'active',
       timestamp: new Date().toISOString(),
       reviewedAt: null,
-      // Add 'description' attribute, using anomaly.description or a default.
-      // The default will only be used if the 'description' property is not provided
-      // by the rule engine or ML model.
       description: description || `General anomaly for medicine ID: ${anomaly.dataPoint ? anomaly.dataPoint.medicineID : 'N/A'}.`,
     };
 

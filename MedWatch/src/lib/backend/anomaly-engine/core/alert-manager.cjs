@@ -3,7 +3,12 @@
  * Handles alert generation, routing, and notification delivery
  */
 
-import EventEmitter from 'events';
+const EventEmitter = require('events');
+const twilio = require('twilio');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
 
 class AlertManager extends EventEmitter {
   constructor() {
@@ -13,8 +18,8 @@ class AlertManager extends EventEmitter {
     this.notificationChannels = new Map();
     this.alertRules = new Map();
     this.isProcessing = false;
-    
-    // Initialize logger
+
+    // Initialize logger BEFORE calling initializeTwilioClient()
     this.logger = {
       info: (message, data = '') => {
         const timestamp = new Date().toISOString();
@@ -30,8 +35,52 @@ class AlertManager extends EventEmitter {
       }
     };
     
+    // Initialize Twilio client (now logger is available)
+    this.initializeTwilioClient();
+    
     this.initializeNotificationChannels();
     this.initializeAlertRules();
+  }
+
+  initializeTwilioClient() {
+    // Validate Twilio environment variables
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+      this.logger.error('Missing required Twilio environment variables');
+      this.logger.error('Required: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER');
+      this.twilioClient = null;
+      return;
+    }
+
+    // Check if using placeholder values
+    if (process.env.TWILIO_ACCOUNT_SID === 'your_account_sid_here' || 
+        process.env.TWILIO_AUTH_TOKEN === 'your_auth_token_here' || 
+        process.env.TWILIO_PHONE_NUMBER === 'your_twilio_phone_number_here') {
+      this.logger.error('Please update your .env file with actual Twilio credentials');
+      this.logger.error('Current values appear to be placeholders');
+      this.logger.error('Get your credentials from: https://console.twilio.com/');
+      this.twilioClient = null;
+      return;
+    }
+
+    // Validate Account SID format
+    if (!process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
+      this.logger.error('Invalid TWILIO_ACCOUNT_SID format. It should start with "AC"');
+      this.twilioClient = null;
+      return;
+    }
+
+    try {
+      // Initialize Twilio client
+      this.twilioClient = twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN
+      );
+      
+      this.logger.info('Twilio client initialized successfully');
+    } catch (error) {
+      this.logger.error('Failed to initialize Twilio client', error);
+      this.twilioClient = null;
+    }
   }
 
   initializeNotificationChannels() {
@@ -51,11 +100,12 @@ class AlertManager extends EventEmitter {
     // SMS notification channel
     this.notificationChannels.set('sms', {
       name: 'SMS',
-      enabled: true,
+      enabled: !!this.twilioClient, // Only enable if Twilio is properly configured
       send: this.sendSMSAlert.bind(this),
       config: {
-        apiKey: process.env.SMS_API_KEY,
-        apiUrl: process.env.SMS_API_URL
+        twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
+        twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
+        twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER
       }
     });
 
@@ -272,19 +322,71 @@ class AlertManager extends EventEmitter {
   }
 
   async sendSMSAlert(notificationData, recipients) {
-    // Simulated SMS sending
-    const message = this.formatSMSMessage(notificationData);
-    
-    this.logger.info('Sending SMS alert', {
-      to: recipients,
-      message
-    });
+    if (!this.twilioClient) {
+      throw new Error('Twilio client not initialized. Please check your environment variables.');
+    }
 
-    // In real implementation, use Twilio or similar SMS service
+    const message = this.formatSMSMessage(notificationData);
+    const results = [];
+
+    for (const phoneNumber of recipients) {
+      try {
+        // Basic phone number validation
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+        if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+          throw new Error(`Invalid phone number format: ${phoneNumber}. Please include country code (e.g., +1234567890)`);
+        }
+
+        // Message length validation
+        if (message.length > 1600) {
+          throw new Error('Message too long. Maximum 1600 characters allowed.');
+        }
+        
+        this.logger.info(`Sending SMS to ${phoneNumber}: ${message.substring(0, 50)}...`);
+        
+        const result = await this.twilioClient.messages.create({
+          body: message,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phoneNumber
+        });
+        
+        this.logger.info(`SMS sent successfully to ${phoneNumber}. SID: ${result.sid}`);
+        
+        results.push({
+          phoneNumber,
+          success: true,
+          sid: result.sid,
+          sentAt: new Date()
+        });
+        
+      } catch (error) {
+        this.logger.error(`Failed to send SMS to ${phoneNumber}`, error);
+        
+        // Handle specific Twilio errors
+        let errorMessage = error.message;
+        if (error.code === 21211) {
+          errorMessage = 'Invalid phone number - not valid or not reachable';
+        } else if (error.code === 21408) {
+          errorMessage = 'Permission denied - no permission to send SMS to this number';
+        } else if (error.code === 21608) {
+          errorMessage = 'Unverified number (Trial Account) - please verify at twilio.com or upgrade to paid account';
+        } else if (error.code === 21614) {
+          errorMessage = 'Invalid phone number format - please include country code';
+        }
+        
+        results.push({
+          phoneNumber,
+          success: false,
+          error: errorMessage,
+          code: error.code || 'UNKNOWN'
+        });
+      }
+    }
+
     return {
       channel: 'sms',
-      success: true,
-      recipients,
+      success: results.some(r => r.success),
+      results,
       message,
       sentAt: new Date()
     };
@@ -572,6 +674,61 @@ class AlertManager extends EventEmitter {
 
   generateAlertId() {
     return `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  // Health check method for Twilio connection
+  async testTwilioConnection() {
+    if (!this.twilioClient) {
+      throw new Error('Twilio client not initialized');
+    }
+
+    try {
+      const account = await this.twilioClient.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
+      return {
+        success: true,
+        account: account.friendlyName,
+        status: account.status,
+        message: 'Twilio connection successful'
+      };
+    } catch (error) {
+      this.logger.error('Twilio connection test failed', error);
+      throw new Error(`Twilio connection failed: ${error.message}`);
+    }
+  }
+
+  // Method to send SMS directly (can be used for testing)
+  async sendDirectSMS(phoneNumber, message) {
+    if (!this.twilioClient) {
+      throw new Error('Twilio client not initialized');
+    }
+
+    // Basic phone number validation
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+      throw new Error('Invalid phone number format. Please include country code (e.g., +1234567890)');
+    }
+
+    // Message length validation
+    if (message.length > 1600) {
+      throw new Error('Message too long. Maximum 1600 characters allowed.');
+    }
+
+    try {
+      const result = await this.twilioClient.messages.create({
+        body: message,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phoneNumber
+      });
+
+      return {
+        success: true,
+        sid: result.sid,
+        message: 'SMS sent successfully'
+      };
+    } catch (error) {
+      this.logger.error('Error sending direct SMS', error);
+      throw error;
+    }
   }
 }
 

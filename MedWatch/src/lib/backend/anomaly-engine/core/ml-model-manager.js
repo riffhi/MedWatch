@@ -408,7 +408,7 @@ class MLModelManager extends EventEmitter {
     return riskFactors[locationKey] || 0.5;
   }
 
-  combinePredictions(predictions, _dataPoint) {
+  combinePredictions(predictions, dataPoint) { // dataPoint is now available here
     if (predictions.length === 0) {
       return { isAnomaly: false, confidence: 0, modelName: 'none' };
     }
@@ -440,6 +440,39 @@ class MLModelManager extends EventEmitter {
     const overallDescription = predictions.map(p => p.description).join('\n\n');
     const overallCauses = [...new Set(predictions.flatMap(p => p.causesOfShortages))]; // Combine unique causes
 
+    // NEW: Calculate current decline rate and projected stockout date for combined details
+    // Re-using helper functions from seed.js (or similar logic)
+    const calculateCurrentDeclineRate = (stockHistory) => {
+      if (!stockHistory || stockHistory.length < 3) return null;
+      const recent = stockHistory.slice(0, 3);
+      const decline = recent[0] - recent[2];
+      const periods = 2;
+      return decline / periods;
+    };
+
+    const calculateProjectedStockoutDate = (currentStock, dailyConsumption) => {
+      if (currentStock <= 0 || dailyConsumption <= 0) return null;
+      const daysRemaining = currentStock / dailyConsumption;
+      const stockoutDate = new Date();
+      stockoutDate.setDate(stockoutDate.getDate() + Math.floor(daysRemaining));
+      return stockoutDate.toISOString();
+    };
+
+    const combinedDetails = predictions.reduce((acc, pred) => ({ ...acc, [pred.modelName]: pred.details }), {});
+
+    // Add common stock-related metrics if dataPoint has them
+    if (dataPoint.stockHistory && dataPoint.currentStock !== undefined && dataPoint.dailyConsumption !== undefined) {
+      const declineRate = calculateCurrentDeclineRate(dataPoint.stockHistory);
+      const stockoutDate = calculateProjectedStockoutDate(dataPoint.currentStock, dataPoint.dailyConsumption);
+      
+      if (declineRate !== null) {
+        combinedDetails.currentDeclineRate = declineRate;
+      }
+      if (stockoutDate !== null) {
+        combinedDetails.projectedStockoutDate = stockoutDate;
+      }
+    }
+
     return {
       isAnomaly: finalConfidence > 0.5,
       confidence: finalConfidence,
@@ -449,7 +482,7 @@ class MLModelManager extends EventEmitter {
       causesOfShortages: overallCauses, // Combined causes
       type: anomalyTypes.join(', '), // Combined types will now use the more descriptive names
       modelName: 'ensemble',
-      details: predictions.reduce((acc, pred) => ({ ...acc, [pred.modelName]: pred.details }), {}), // Group details by model
+      details: combinedDetails, // Use the enhanced combinedDetails
       individualPredictions: predictions
     };
   }

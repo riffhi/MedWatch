@@ -154,7 +154,7 @@ import { IndianRupee, Search, Tag, Building, ServerCrash, Wind } from 'lucide-re
 
 // --- Configuration ---
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID; 
+const COLLECTION_ID = import.meta.env.VITE_APPWRITE_MEDICINE_COLLECTION_ID; 
 
 const PriceFinder = () => {
   const [medicineName, setMedicineName] = useState('');

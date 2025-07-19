@@ -1,9 +1,8 @@
 const EventEmitter = require('events');
-// Update the require path to .cjs extension for RuleEngine
-const RuleEngine = require('./rule-engine.cjs'); // Changed from './rule-engine'
+const RuleEngine = require('./rule-engine.cjs'); // Updated to .cjs
 const MLModelManager = require('./ml-model-manager');
 const DataProcessor = require('./data-processor');
-const AlertManager = require('./alert-manager.cjs'); // Already updated this one
+const AlertManager = require('./alert-manager.cjs'); // Updated to .cjs
 const DatabaseService = require('./database');
 
 class AnomalyDetector extends EventEmitter {
@@ -25,8 +24,7 @@ class AnomalyDetector extends EventEmitter {
     this.ruleEngine = new RuleEngine(this.logger);
     this.mlModelManager = new MLModelManager(this.logger);
     this.dataProcessor = new DataProcessor(this.logger);
-    this.alertManager = new AlertManager(this.logger); // Ensure AlertManager constructor accepts logger
-                                                     // (currently it doesn't in the provided AlertManager.js)
+    this.alertManager = new AlertManager(this.logger);
 
     this.isRunning = false;
 
@@ -160,6 +158,8 @@ class AnomalyDetector extends EventEmitter {
       timestamp: new Date().toISOString(),
       reviewedAt: null,
       description: description || `General anomaly for medicine ID: ${anomaly.dataPoint ? anomaly.dataPoint.medicineID : 'N/A'}.`,
+      // NEW: Include the 'disease' attribute from the dataPoint
+      disease: anomaly.dataPoint ? anomaly.dataPoint.disease : null,
     };
 
     this.database.saveAnomaly(enrichedAnomaly);

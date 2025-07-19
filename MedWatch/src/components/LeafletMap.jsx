@@ -202,13 +202,7 @@ const MedicineShortageMap = () => {
             <label htmlFor="showPharmacies" className="text-sm text-gray-300">Show Pharmacies</label>
           </div>
 
-          <button
-            onClick={() => setShowReportForm(true)}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-md hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Report Shortage
-          </button>
+          
         </div>
       </div>
 

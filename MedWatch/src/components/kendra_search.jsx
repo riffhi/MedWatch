@@ -25,7 +25,7 @@ if (APPWRITE_ENDPOINT && APPWRITE_PROJECT_ID) {
 const KendraCard = ({ kendra }) => (
     <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:bg-slate-800 hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/10">
         <h2 className="text-xl font-bold text-purple-400 mb-2">{kendra.Name}</h2>
-        <p className="text-sm text-gray-400 mb-4 font-mono">Kendra Code: {kendra['Kendra_code'] || 'N/A'}</p>
+        <p className="text-sm text-gray-400 mb-4 font-mono">Kendra Code: {kendra['Kendra_Code'] || 'N/A'}</p>
         
         <div className="space-y-3 text-gray-300">
             <div className="flex items-start">
@@ -99,7 +99,7 @@ const KendraSearch = () => {
                 kendra['State Name']?.toLowerCase().includes(query) ||
                 kendra['District Name']?.toLowerCase().includes(query) ||
                 kendra.Address?.toLowerCase().includes(query) ||
-                kendra['Kendra_code']?.toLowerCase().includes(query) ||
+                kendra['Kendra_Code']?.toLowerCase().includes(query) ||
                 kendra['Pin Code']?.toLowerCase().includes(query)
             );
         });

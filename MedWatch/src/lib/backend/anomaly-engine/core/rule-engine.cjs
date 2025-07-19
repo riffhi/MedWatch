@@ -3,9 +3,10 @@
  * Implements predefined business rules for detecting medicine shortage anomalies
  */
 
-import EventEmitter from 'events';
-import fs from 'fs/promises';
-import path from 'path';
+// Changed import statements to CommonJS require for compatibility
+const EventEmitter = require('events');
+const fs = require('fs/promises');
+const path = require('path');
 
 class RuleEngine extends EventEmitter {
   constructor(logger) {
@@ -23,9 +24,11 @@ class RuleEngine extends EventEmitter {
       for (const file of ruleFiles) {
         if (file.endsWith('.js')) {
           const rulePath = path.join(rulesPath, file);
-          const ruleModule = await import(rulePath);
+          // Changed import to require for CommonJS compatibility
+          // Note: If individual rule files also use 'export default', they might need to be .cjs or converted too.
+          const ruleModule = require(rulePath); 
           
-          if (Array.isArray(ruleModule.default)) {
+          if (Array.isArray(ruleModule.default)) { // Still assuming default export from individual rule files
             ruleModule.default.forEach(rule => this.addRule(rule));
           } else {
             this.addRule(ruleModule.default);
@@ -83,7 +86,10 @@ class RuleEngine extends EventEmitter {
           if (anomaly) {
             anomalies.push({
               ...anomaly,
-              ruleId,
+              // These properties (ruleId, ruleName, ruleCategory) are not part of the Appwrite anomaly schema
+              // and should ideally be excluded or handled differently if they cause "Unknown attribute" errors.
+              // For now, they are kept as they are part of the original rule-engine logic.
+              ruleId, 
               ruleName: rule.name,
               ruleCategory: rule.category
             });
@@ -188,12 +194,16 @@ class RuleEngine extends EventEmitter {
     }
     
     // Default action - create anomaly object
+    // Ensure these properties match your Appwrite anomaly schema
     return {
       type: rule.category || 'unknown',
       severity: rule.severity || 'medium',
       message: rule.message || `Rule ${rule.name} triggered`,
-      details: rule.details || {},
-      timestamp: new Date()
+      details: rule.details || {}, // Ensure this is compatible with Appwrite's 'details' attribute type (string)
+      confidence: rule.confidence || 0.5, // Provide a default confidence
+      causesOfShortages: rule.causesOfShortages || 'Not specified', // Provide a default
+      description: rule.description || `Anomaly detected by rule: ${rule.name}.`, // Provide a default
+      // Note: ruleId, ruleName, ruleCategory are handled in evaluate method if needed
     };
   }
 
@@ -261,4 +271,5 @@ class RuleEngine extends EventEmitter {
   }
 }
 
-export default RuleEngine;
+// Changed export from 'export default' to 'module.exports' for CommonJS compatibility
+module.exports = RuleEngine;

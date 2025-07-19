@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Client, Account, ID, Query } from 'appwrite';
-import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield, IndianRupee, Search } from 'lucide-react';
+import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2, HeartPulse, Building, Shield, IndianRupee, Search, Brain } from 'lucide-react';
 
 // Import all your components
 import MedicineShortageMap from './components/MedicineShortageMap';
@@ -10,6 +10,7 @@ import ReportShortage from './components/ReportShortage';
 import InventoryManagement from './components/InventoryManagement';
 import PriceFinder from './components/PriceFinder'; // 1. IMPORTED PRICEFINDER
 import KendraSearch from './components/kendra_search'; // 2. IMPORTED KENDRA SEARCH
+import AnomalyDashboard from './components/AnomalyDashboard'; // 3. IMPORTED ANOMALY DASHBOARD
 import { databases } from './lib/appwrite.js'; // Ensure this path is correct
 
 // --- Appwrite Configuration ---
@@ -251,6 +252,8 @@ function MainLayout({ user, userRole, onLogout }) {
       { id: 'report', label: 'Report Shortage', icon: AlertTriangle },
       // 4. ADDED KENDRA SEARCH NAVIGATION ITEM FOR PHARMACY
       { id: 'kendraSearch', label: 'Kendra Search', icon: Search },
+      // 5. ADDED ANOMALY DASHBOARD FOR PHARMACY
+      { id: 'anomalyDashboard', label: 'Anomaly Detection', icon: Brain },
     ],
   };
 
@@ -267,6 +270,7 @@ function MainLayout({ user, userRole, onLogout }) {
       case 'priceFinder': return <PriceFinder />;
       // 5. ADDED RENDER LOGIC FOR KENDRA SEARCH
       case 'kendraSearch': return <KendraSearch />;
+      case 'anomalyDashboard': return <AnomalyDashboard />;
       default: return <Dashboard userRole={userRole} />;
     }
   };

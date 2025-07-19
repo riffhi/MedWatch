@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Client, Account, ID } from 'appwrite';
+import { Client, Account, ID, Query } from 'appwrite';
 import { Activity, Map, BarChart3, Settings, Menu, Bell, Users, Eye, EyeOff, LogOut, ChevronDown, TrendingUp, AlertTriangle, Briefcase, BarChart2 } from 'lucide-react';
 
 // Import all your components
@@ -8,16 +8,39 @@ import Dashboard from './components/Dashboard';
 import Alerts from './components/Alerts';
 import ReportShortage from './components/ReportShortage';
 import InventoryManagement from './components/InventoryManagement';
+import { databases } from './lib/appwrite.js'; // Ensure this path is correct
 
 // --- Appwrite Configuration ---
 const appwriteEndpoint = import.meta.env.VITE_APPWRITE_ENDPOINT;
 const appwriteProjectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID; // Ensure this is set in your .env file
+const userCollectionId = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID; // Ensure this is set in your .env file
 
 const client = new Client();
 if (appwriteEndpoint && appwriteProjectId) {
   client.setEndpoint(appwriteEndpoint).setProject(appwriteProjectId);
 }
 const account = new Account(client);
+
+async function fetchUserRole(userEmail) {
+  const res = await databases.listDocuments(DB_ID, userCollectionId, [
+    Query.equal('userEmail', userEmail)
+  ]);
+  console.log('Queried userEmail:', userEmail);
+  if (res.documents.length > 0) {
+    const userDoc = res.documents[0];
+    console.log('User document fetched:', userDoc);
+    if (userDoc.role) {
+      return userDoc.role;
+    } else {
+      console.warn('Role field missing in user document:', userDoc);
+      return 'patient';
+    }
+  }
+  console.warn('No user document found for email:', userEmail);
+  return 'patient'; // fallback role
+
+}
 
 // --- Main Layout Component (The Dashboard Interface) ---
 function MainLayout({ user, userRole, onLogout }) {
@@ -135,7 +158,7 @@ const InputField = (props) => (
 
 // --- User Login/Registration Component ---
 const UserLogin = ({ onLoginSuccess }) => {
-  const [userType, setUserType] = useState('patient');
+  const [userType, setUserType] = useState(null); // Will be set after login from DB
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
@@ -160,12 +183,27 @@ const UserLogin = ({ onLoginSuccess }) => {
     }
 
     try {
+      let newUserId;
       if (isRegistering) {
-        await account.create(ID.unique(), formData.email, formData.password, formData.name);
+        // Create Appwrite account
+        const createdUser = await account.create(ID.unique(), formData.email, formData.password, formData.name);
+        newUserId = createdUser.$id;
+        // Create user document in Appwrite users collection
+        await databases.createDocument(
+          DB_ID,
+          userCollectionId,
+          newUserId, // Use Appwrite user ID as document ID
+          {
+            userId: newUserId,
+            name: formData.name,
+            email: formData.email,
+            role: 'patient', // Default role, or set as needed
+          }
+        );
       }
       await account.createEmailPasswordSession(formData.email, formData.password);
       const user = await account.get();
-      onLoginSuccess(user, userType);
+      onLoginSuccess(user);
     } catch (err) {
       console.error('Authentication failed:', err);
       setError(err.message || 'An error occurred. Please try again.');
@@ -194,7 +232,7 @@ const UserLogin = ({ onLoginSuccess }) => {
   const userTypeOptions = [
     { value: 'patient', label: 'Patient / Public', description: 'Report shortages and find medicine', icon: Users },
     { value: 'pharmacy', label: 'Pharmacy', description: 'Manage inventory and stock levels', icon: Briefcase },
-    { value: 'authority', label: 'Health Authority', description: 'Monitor regional shortage data', icon: BarChart2 }
+    // { value: 'authority', label: 'Health Authority', description: 'Monitor regional shortage data', icon: BarChart2 }
   ];
 
   return (
@@ -378,7 +416,8 @@ export default function App() {
     checkSession();
   }, []);
 
-  const handleLoginSuccess = (user, role) => {
+  const handleLoginSuccess = async (user) => {
+    const role = await fetchUserRole(user.email);
     setLoggedInUser(user);
     setUserRole(role);
     localStorage.setItem('userRole', role);

@@ -150,8 +150,8 @@ const UserLogin = ({ onLogin, userType, setUserType }) => {
 
   const userTypeOptions = [
     { value: 'patient', label: 'Patient/Public', description: 'Report shortages and check availability' },
-    { value: 'pharmacy', label: 'Pharmacy', description: 'Manage inventory and stock levels' },
-    { value: 'authority', label: 'Health Authority', description: 'Monitor and respond to alerts' }
+    { value: 'pharmacy', label: 'Pharmacy', description: 'Manage inventory and stock levels' }
+    // { value: 'authority', label: 'Health Authority', description: 'Monitor and respond to alerts' }
   ];
 
   return (
@@ -224,6 +224,24 @@ const UserLogin = ({ onLogin, userType, setUserType }) => {
                 </button>
               </div>
             </div>
+{/* 
+            <div className="mt-4">
+            <label htmlFor="role" className="block text-sm font-medium text-gray-300">
+              Select Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={userType}
+              onChange={e => setUserType(e.target.value)}
+              className="mt-1 w-full px-3 py-2 bg-black opacity-70 text-white border border-white/20 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-500"
+              required
+            >
+              <option value="patient" className="bg-slate-900 text-white">Patient / Public</option>
+              <option value="pharmacy" className="bg-slate-900 text-white">Pharmacy</option>
+            </select>
+            </div> */}
+            
             
             {error && (<p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>)}
 

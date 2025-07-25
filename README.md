@@ -19,29 +19,29 @@ By combining crowdsourced patient reports with verified pharmacy inventory data,
 
 ### 🚀 Key Features
 ## For Patients & the Public
-# Live Shortage Map: 
+Live Shortage Map: 
 An interactive map (built with Leaflet.js) to visualize real-time medicine availability and shortage hotspots in your area.
-# Find Affordable Medicine: 
+Find Affordable Medicine: 
 Instantly locate nearby Jan Aushadhi Kendras to access affordable generic medicines, with potential savings of 50-90%.
-# PriceFinder Tool: 
+PriceFinder Tool: 
 Compare medicine prices from various pharmacies to prevent overpaying.
-# Instant Reporting: 
+Instant Reporting: 
 A simple, 30-second form to report medicine shortages or unfair pricing, empowering the community to contribute data.
 
 ## For Pharmacies
-# Inventory Management System: 
+Inventory Management System: 
 A full-featured CRUD dashboard to manage medicine stock, track expiry dates, and update prices.
-# Automated Alerts: 
+Automated Alerts: 
 Receive proactive notifications for low-stock items and medicines approaching their expiry date, helping to prevent stockouts and reduce waste.
-# Community Impact: 
+Community Impact: 
 Become a verified and trusted partner in the public health ecosystem.
 
 ## For Health Authorities & NGOs
-# Analytics Dashboard:
+Analytics Dashboard:
 A high-level view of regional supply chains, with heat maps and trend analysis.
-# Real-Time Anomaly Alerts: 
+Real-Time Anomaly Alerts: 
 Get instant notifications from our backend engine about critical regional shortages or coordinated price manipulation.
-# Proactive Management: 
+Proactive Management: 
 Shift from a reactive to a proactive approach by using data to manage supply chains and intervene before a crisis occurs.
 
 ### 🛠️ Tech Stack & Architecture

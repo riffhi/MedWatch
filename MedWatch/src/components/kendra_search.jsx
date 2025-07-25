@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Client, Databases, Query } from 'appwrite'; // Make sure to install 'appwrite' package: npm install appwrite
 
@@ -9,19 +8,23 @@ const APPWRITE_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 const APPWRITE_kendra_COLLECTION_ID = import.meta.env.VITE_APPWRITE_kendra_COLLECTION_ID;
 const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;
 
-// Initialize the Appwrite client
-const client = new Client();
-client
-    .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT_ID);
+// Initialize the Appwrite client only if configuration is available
+let client = null;
+let databases = null;
 
-const databases = new Databases(client);
+if (APPWRITE_ENDPOINT && APPWRITE_PROJECT_ID) {
+    client = new Client();
+    client
+        .setEndpoint(APPWRITE_ENDPOINT)
+        .setProject(APPWRITE_PROJECT_ID);
+    databases = new Databases(client);
+}
 
 // Component for displaying a single Kendra card
 const KendraCard = ({ kendra }) => (
     <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:bg-slate-800 hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/10">
         <h2 className="text-xl font-bold text-purple-400 mb-2">{kendra.Name}</h2>
-        <p className="text-sm text-gray-400 mb-4 font-mono">Kendra Code: {kendra['Kendra Code']}</p>
+        <p className="text-sm text-gray-400 mb-4 font-mono">Kendra Code: {kendra['Kendra_Code'] || 'N/A'}</p>
         
         <div className="space-y-3 text-gray-300">
             <div className="flex items-start">
@@ -38,6 +41,81 @@ const KendraCard = ({ kendra }) => (
     </div>
 );
 
+// Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        
+        return pages;
+    };
+
+    return (
+        <div className="flex justify-center items-center space-x-2 mt-8">
+            <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-gray-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Previous
+            </button>
+            
+            {getPageNumbers().map((page, index) => (
+                <button
+                    key={index}
+                    onClick={() => typeof page === 'number' && onPageChange(page)}
+                    disabled={page === '...'}
+                    className={`px-3 py-2 rounded-lg transition-colors ${
+                        page === currentPage
+                            ? 'bg-purple-600 text-white'
+                            : page === '...'
+                            ? 'text-gray-500 cursor-default'
+                            : 'bg-slate-800/50 border border-slate-700 text-gray-400 hover:bg-slate-700 hover:text-white'
+                    }`}
+                >
+                    {page}
+                </button>
+            ))}
+            
+            <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-gray-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Next
+            </button>
+        </div>
+    );
+};
+
 // Main Search Component
 const KendraSearch = () => {
     const [allKendraData, setAllKendraData] = useState([]);
@@ -45,11 +123,29 @@ const KendraSearch = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(12); // Show 12 items per page (3x4 grid)
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             setError(null);
+            
+            // Check if Appwrite is properly configured
+            if (!APPWRITE_PROJECT_ID || !APPWRITE_DATABASE_ID || !APPWRITE_kendra_COLLECTION_ID || !APPWRITE_ENDPOINT) {
+                setError("Appwrite configuration is missing. Please check your environment variables. Required variables: VITE_APPWRITE_ENDPOINT, VITE_APPWRITE_PROJECT_ID, VITE_APPWRITE_DATABASE_ID, VITE_APPWRITE_kendra_COLLECTION_ID");
+                setIsLoading(false);
+                return;
+            }
+
+            if (!databases) {
+                setError("Failed to initialize Appwrite client. Please check your configuration.");
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 const response = await databases.listDocuments(
                     APPWRITE_DATABASE_ID,
@@ -60,38 +156,47 @@ const KendraSearch = () => {
                 setFilteredKendraData(response.documents);
             } catch (e) {
                 console.error("Failed to fetch data from Appwrite:", e);
-                setError("Could not load Kendra data. Please check your Appwrite configuration and network connection.");
+                setError("Could not load Kendra data. Please check your Appwrite configuration and network connection. Error: " + e.message);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        if (!APPWRITE_PROJECT_ID || !APPWRITE_DATABASE_ID || !APPWRITE_kendra_COLLECTION_ID) {
-            setError("Appwrite configuration is missing. Please check your environment variables.");
-            setIsLoading(false);
-        } else {
-            fetchData();
-        }
+        fetchData();
     }, []);
 
     useEffect(() => {
         if (!searchTerm) {
             setFilteredKendraData(allKendraData);
-            return;
+        } else {
+            const filtered = allKendraData.filter(kendra => {
+                const query = searchTerm.toLowerCase();
+                return (
+                    kendra.Name?.toLowerCase().includes(query) ||
+                    kendra['State Name']?.toLowerCase().includes(query) ||
+                    kendra['District Name']?.toLowerCase().includes(query) ||
+                    kendra.Address?.toLowerCase().includes(query) ||
+                    kendra['Kendra_Code']?.toLowerCase().includes(query) ||
+                    kendra['Pin Code']?.toLowerCase().includes(query)
+                );
+            });
+            setFilteredKendraData(filtered);
         }
-        const filtered = allKendraData.filter(kendra => {
-            const query = searchTerm.toLowerCase();
-            return (
-                kendra.Name?.toLowerCase().includes(query) ||
-                kendra['State Name']?.toLowerCase().includes(query) ||
-                kendra['District Name']?.toLowerCase().includes(query) ||
-                kendra.Address?.toLowerCase().includes(query) ||
-                kendra['Kendra Code']?.toLowerCase().includes(query) ||
-                kendra['Pin Code']?.toLowerCase().includes(query)
-            );
-        });
-        setFilteredKendraData(filtered);
+        // Reset to first page when search term changes
+        setCurrentPage(1);
     }, [searchTerm, allKendraData]);
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredKendraData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentKendraData = filteredKendraData.slice(startIndex, endIndex);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        // Scroll to top when page changes
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="text-white font-sans">
@@ -123,14 +228,44 @@ const KendraSearch = () => {
                         </div>
                     ) : error ? (
                         <div className="text-center py-10 bg-red-900/20 border border-red-500 rounded-lg p-6">
-                            <p className="text-2xl text-red-400">{error}</p>
+                            <p className="text-2xl text-red-400 mb-4">Configuration Error</p>
+                            <p className="text-lg text-red-300 mb-4">{error}</p>
+                            <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                <p className="text-sm text-gray-300 mb-2">To fix this issue, create a <code className="bg-slate-700 px-2 py-1 rounded">.env</code> file in your project root with:</p>
+                                <pre className="text-xs text-gray-400 bg-slate-900 p-3 rounded overflow-x-auto">
+{`VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+VITE_APPWRITE_PROJECT_ID=your_project_id_here
+VITE_APPWRITE_DATABASE_ID=your_database_id_here
+VITE_APPWRITE_kendra_COLLECTION_ID=your_kendra_collection_id_here`}
+                                </pre>
+                            </div>
                         </div>
                     ) : filteredKendraData.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredKendraData.map((kendra) => (
-                                <KendraCard key={kendra.$id} kendra={kendra} />
-                            ))}
-                        </div>
+                        <>
+                            {/* Results count */}
+                            <div className="mb-6 text-center">
+                                <p className="text-gray-400">
+                                    Showing {startIndex + 1}-{Math.min(endIndex, filteredKendraData.length)} of {filteredKendraData.length} results
+                                    {searchTerm && ` for "${searchTerm}"`}
+                                </p>
+                            </div>
+                            
+                            {/* Kendra Cards Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {currentKendraData.map((kendra) => (
+                                    <KendraCard key={kendra.$id} kendra={kendra} />
+                                ))}
+                            </div>
+                            
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <Pagination 
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            )}
+                        </>
                     ) : (
                         <div className="text-center py-10">
                             <p className="text-2xl text-gray-400">No results found.</p>

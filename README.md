@@ -113,14 +113,14 @@ APPWRITE_DATABASE_ID="YOUR_DATABASE_ID"
 
 Run the Frontend:
 
-# From the root MedWatch directory
+From the root MedWatch directory
 ```bash
 npm run dev
 ```
 
 Run the Backend Anomaly Engine:
 
-# From the MedWatch/src/lib/backend/anomaly-engine directory
+From the MedWatch/src/lib/backend/anomaly-engine directory
 ```bash
 npm start
 ```

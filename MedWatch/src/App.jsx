@@ -710,15 +710,30 @@ export default function App() {
     setShowLogin(false);
   };
 
+  // const handleLogout = async () => {
+  //   try {
+  //     await account.deleteSession('current');
+  //     setLoggedInUser(null);
+  //     setUserRole(null);
+  //     localStorage.removeItem('userRole');
+  //     setShowLogin(false);
+  //   } catch (error) {
+  //     console.error('Failed to logout:', error);
+  //   }
+  // };
   const handleLogout = async () => {
     try {
+      // Attempt to delete the session from the Appwrite server
       await account.deleteSession('current');
+    } catch (error) {
+      // Log any server-side errors but don't stop the client-side logout process
+      console.error('Failed to delete Appwrite session:', error);
+    } finally {
+      // This block will always execute, ensuring the user is logged out on the client side
       setLoggedInUser(null);
       setUserRole(null);
       localStorage.removeItem('userRole');
       setShowLogin(false);
-    } catch (error) {
-      console.error('Failed to logout:', error);
     }
   };
 
